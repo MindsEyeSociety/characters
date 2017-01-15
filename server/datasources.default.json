@@ -1,0 +1,12 @@
+{
+  "db": {
+    "name": "db",
+    "connector": "memory"
+  },
+  "mysql": {
+    "url": "mysql://root:root@localhost:3306/characters",
+    "name": "mysql",
+    "connector": "mysql",
+    "debug": true
+  }
+}

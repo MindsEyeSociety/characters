@@ -1,0 +1,30 @@
+{
+  "_meta": {
+    "sources": [
+      "loopback/common/models",
+      "loopback/server/models",
+      "./models"
+    ],
+    "mixins": [
+      "loopback/common/mixins",
+      "loopback/server/mixins",
+      "./mixins"
+    ]
+  },
+  "Characters": {
+    "dataSource": "mysql",
+    "public": true
+  },
+  "TextSheets": {
+    "dataSource": "mysql",
+    "public": false
+  },
+  "Tags": {
+    "dataSource": "mysql",
+    "public": true
+  },
+  "CharacterTags": {
+    "dataSource": "mysql",
+    "public": false
+  }
+}

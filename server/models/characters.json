@@ -1,0 +1,147 @@
+{
+  "name": "Characters",
+  "base": "PersistedModel",
+  "options": {
+    "idInjection": false,
+    "mysql": {
+      "schema": "characters",
+      "table": "characters"
+    }
+  },
+  "properties": {
+    "name": {
+      "type": "String",
+      "required": true,
+      "index": true,
+      "length": 255,
+      "precision": null,
+      "scale": null,
+      "mysql": {
+        "columnName": "name",
+        "dataType": "varchar",
+        "dataLength": 255,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "N"
+      }
+    },
+    "userid": {
+      "type": "Number",
+      "required": true,
+      "index": true,
+      "length": null,
+      "precision": 10,
+      "scale": 0,
+      "mysql": {
+        "columnName": "userId",
+        "dataType": "int",
+        "dataLength": null,
+        "dataPrecision": 10,
+        "dataScale": 0,
+        "nullable": "N"
+      }
+    },
+    "type": {
+      "type": "String",
+      "required": true,
+      "index": true,
+      "length": 3,
+      "precision": null,
+      "scale": null,
+      "mysql": {
+        "columnName": "type",
+        "dataType": "enum",
+        "dataLength": "'PC','NPC'",
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "N"
+      }
+    },
+    "orgunit": {
+      "type": "Number",
+      "required": true,
+      "index": true,
+      "length": null,
+      "precision": 10,
+      "scale": 0,
+      "mysql": {
+        "columnName": "orgUnit",
+        "dataType": "int",
+        "dataLength": null,
+        "dataPrecision": 10,
+        "dataScale": 0,
+        "nullable": "N"
+      }
+    },
+    "venue": {
+      "type": "String",
+      "required": true,
+      "index": true,
+      "length": 255,
+      "precision": null,
+      "scale": null,
+      "mysql": {
+        "columnName": "venue",
+        "dataType": "varchar",
+        "dataLength": 255,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "N"
+      }
+    },
+    "active": {
+      "type": "Boolean",
+      "required": false,
+      "index": true,
+      "default": 1
+    },
+    "source": {
+      "type": "String",
+      "required": true,
+      "length": 255,
+      "precision": null,
+      "scale": null,
+      "default": "text",
+      "mysql": {
+        "columnName": "source",
+        "dataType": "varchar",
+        "dataLength": 255,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "N"
+      }
+    },
+    "remoteid": {
+      "type": "Number",
+      "required": false,
+      "index": true,
+      "length": null,
+      "precision": 10,
+      "scale": 0,
+      "mysql": {
+        "columnName": "remoteId",
+        "dataType": "int",
+        "dataLength": null,
+        "dataPrecision": 10,
+        "dataScale": 0,
+        "nullable": "Y"
+      }
+    }
+  },
+  "validations": [],
+  "relations": {
+    "textSheets": {
+      "type": "hasMany",
+      "model": "TextSheets",
+      "foreignKey": "characterid"
+    },
+    "tags": {
+      "type": "hasMany",
+      "model": "Tags",
+      "foreignKey": "characterid",
+      "through": "CharacterTags"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

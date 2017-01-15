@@ -1,0 +1,72 @@
+{
+  "name": "Tags",
+  "base": "PersistedModel",
+  "options": {
+    "idInjection": false,
+    "mysql": {
+      "schema": "tags",
+      "table": "tags"
+    }
+  },
+  "properties": {
+    "name": {
+      "type": "String",
+      "required": true,
+      "length": 255,
+      "precision": null,
+      "scale": null,
+      "mysql": {
+        "columnName": "name",
+        "dataType": "varchar",
+        "dataLength": 255,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "N"
+      }
+    },
+    "venue": {
+      "type": "String",
+      "required": true,
+      "index": true,
+      "length": 255,
+      "precision": null,
+      "scale": null,
+      "mysql": {
+        "columnName": "venue",
+        "dataType": "varchar",
+        "dataLength": 255,
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "N"
+      }
+    },
+    "type": {
+      "type": "String",
+      "required": true,
+      "index": true,
+      "length": 3,
+      "precision": null,
+      "scale": null,
+      "default": "PC",
+      "mysql": {
+        "columnName": "type",
+        "dataType": "enum",
+        "dataLength": "'PC','NPC'",
+        "dataPrecision": null,
+        "dataScale": null,
+        "nullable": "N"
+      }
+    }
+  },
+  "validations": [],
+  "relations": {
+    "characters": {
+      "type": "hasMany",
+      "model": "Characters",
+      "foreignKey": "tagid",
+      "through": "CharacterTags"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
