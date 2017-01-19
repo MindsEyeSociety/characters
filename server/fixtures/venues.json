@@ -1,0 +1,17 @@
+[
+	{
+		"id": "cam-anarch",
+		"name": "Cam/Anarch",
+		"description": "2017 BNS Camarilla and Anarch"
+	},
+	{
+		"id": "apoc",
+		"name": "Apocalypse",
+		"description": "2017 BNS Apocalypse"
+	},
+	{
+		"id": "space",
+		"name": "Space: Infinite Edge",
+		"description": "2017 MES Space"
+	}
+]
