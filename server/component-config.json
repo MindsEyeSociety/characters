@@ -1,6 +1,7 @@
 {
 	"loopback-component-explorer": {
 		"mountPath": "/explorer",
+		"uiDirs": "/app/server/swagger",
 		"apiInfo": {
 			"title": "MES Characters DB"
 		}
