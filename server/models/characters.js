@@ -1,14 +1,11 @@
 const _ = require( 'lodash' );
 
-const cache = require( '../helpers/cache' ).async;
-
 module.exports = function( Characters ) {
 
 	Characters.beforeRemote( 'find', ( ctx, instance, next ) => {
-		cache.get( 'org-tree' )
-		.then( tree => {
-			console.log( tree );
-			console.log( 'here', ctx.req.accessToken );
+		Characters.getTree( ctx.req.accessToken )
+		.then( ids => {
+			_.set( ctx.args, 'filter.where.orgunit.inq', ids );
 			next();
 		});
 	});

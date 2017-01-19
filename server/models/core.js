@@ -45,6 +45,34 @@ module.exports = function( Core ) {
 			callback( null, false );
 		}
 	};
+
+	/**
+	 * Gets an array of valid org units under a given office.
+	 * @param {Object} token The user token object.
+	 * @return {Array}
+	 */
+	Core.getTree = token => {
+
+		const cache = require( '../helpers/cache' ).async;
+
+		const iterateTree = ( tree, id ) => {
+			if ( tree.id === id ) {
+				return gatherTree( tree );
+			}
+			for ( let child of tree.children ) {
+				let result = iterateTree( child, id );
+				if ( result ) {
+					return result;
+				}
+			}
+		};
+
+		const gatherTree = tree => [ tree.id ].concat( tree.children.map( gatherTree ) );
+
+		return cache.get( 'org-tree' )
+		.then( tree => token.units.map( unit => iterateTree( tree, unit ) ) )
+		.then( tree => _.flattenDeep( tree ) );
+	};
 };
 
 
@@ -70,7 +98,14 @@ function checkPerms( perms, token ) {
 	});
 	perms.push( 'admin' );
 
-	let userPerm = _.flatMap( token.offices );
+	let units = [];
+	for ( let office in token.offices ) {
+		if ( _.intersection( token.offices[ office ], perms ).length ) {
+			units.push( parseInt( office ) );
+		}
+	}
 
-	return !! _.intersection( perms, userPerm ).length;
+	token.units = units;
+
+	return !! units.length;
 }
