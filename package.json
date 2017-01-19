@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "eslint": "^3.13.1",
+    "eslint-config-loopback": "^7.0.1",
     "eslint-config-wordpress": "^1.1.0",
     "grunt": "^1.0.1",
     "grunt-eslint": "^19.0.0",

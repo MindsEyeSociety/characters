@@ -1,0 +1,4 @@
+{
+	"name": "Core",
+	"base": "PersistedModel"
+}

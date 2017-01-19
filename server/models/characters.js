@@ -1,17 +1,17 @@
 const _ = require( 'lodash' );
 
+const cache = require( '../helpers/cache' ).async;
+
 module.exports = function( Characters ) {
 
-	Characters.createOptionsFromRemotingContext = ( ctx ) => {
-
-		if ( ! _.get( ctx, 'req.accessToken.id' ) ) {
-			throw new Error( 'Invalid token provided' );
-		}
-
-		return {
-			currentUserId: ctx.req.accessToken.id
-		}
-	};
+	Characters.beforeRemote( 'find', ( ctx, instance, next ) => {
+		cache.get( 'org-tree' )
+		.then( tree => {
+			console.log( tree );
+			console.log( 'here', ctx.req.accessToken );
+			next();
+		});
+	});
 
 	Characters.me = ( filter = {}, options, cb ) => {
 		_.set( filter, 'where.userid', options.currentUserId );
@@ -31,6 +31,4 @@ module.exports = function( Characters ) {
 			returns: { arg: 'data', type: [ Characters.modelName ], root: true }
 		}
 	);
-
-	Characters.disableRemoteMethodByName( 'createChangeStream' );
 };
