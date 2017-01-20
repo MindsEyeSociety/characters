@@ -2,6 +2,8 @@
 
 const _ = require( 'lodash' );
 
+const AuthError = require( '../helpers/errors' ).AuthError;
+
 /**
  * Sets up authentication for models.
  */
@@ -30,15 +32,11 @@ module.exports = function( app ) {
 				ctx,
 				( err, allowed ) => {
 					if ( err ) {
-						console.log( err );
 						next( err );
 					} else if ( allowed ) {
 						next();
 					} else {
-						let e = new Error( 'Access Denied' );
-						e.statusCode = 403;
-						e.code = 'ACCESS_DENIED';
-						next( e );
+						next( new AuthError() );
 					}
 				}
 			);

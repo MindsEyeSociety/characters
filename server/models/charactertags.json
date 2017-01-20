@@ -1,60 +1,58 @@
 {
-  "name": "CharacterTags",
-  "base": "PersistedModel",
-  "options": {
-    "idInjection": false,
-    "mysql": {
-      "schema": "character_tags",
-      "table": "character_tags"
-    }
-  },
-  "properties": {
-    "characterid": {
-      "type": "Number",
-      "required": true,
-      "index": true,
-      "length": null,
-      "precision": 10,
-      "scale": 0,
-      "mysql": {
-        "columnName": "characterId",
-        "dataType": "int",
-        "dataLength": null,
-        "dataPrecision": 10,
-        "dataScale": 0,
-        "nullable": "N"
-      }
-    },
-    "tagid": {
-      "type": "Number",
-      "required": true,
-      "index": true,
-      "length": null,
-      "precision": 10,
-      "scale": 0,
-      "mysql": {
-        "columnName": "tagId",
-        "dataType": "int",
-        "dataLength": null,
-        "dataPrecision": 10,
-        "dataScale": 0,
-        "nullable": "N"
-      }
-    }
-  },
-  "validations": [],
-  "relations": {
-    "characters": {
-      "type": "belongsTo",
-      "model": "Characters",
-      "foreignKey": "characterid"
-    },
-    "tags": {
-      "type": "belongsTo",
-      "model": "Tags",
-      "foreignKey": "tagid"
-    }
-  },
-  "acls": [],
-  "methods": {}
+	"name": "CharacterTags",
+	"base": "PersistedModel",
+	"options": {
+		"idInjection": false,
+		"mysql": {
+			"schema": "character_tags",
+			"table": "character_tags"
+		}
+	},
+	"properties": {
+		"characterid": {
+			"type": "Number",
+			"required": true,
+			"index": true,
+			"length": null,
+			"precision": 10,
+			"scale": 0,
+			"mysql": {
+				"columnName": "characterId",
+				"dataType": "int",
+				"dataLength": null,
+				"dataPrecision": 10,
+				"dataScale": 0,
+				"nullable": "N"
+			}
+		},
+		"tagid": {
+			"type": "Number",
+			"required": true,
+			"index": true,
+			"length": null,
+			"precision": 10,
+			"scale": 0,
+			"mysql": {
+				"columnName": "tagId",
+				"dataType": "int",
+				"dataLength": null,
+				"dataPrecision": 10,
+				"dataScale": 0,
+				"nullable": "N"
+			}
+		}
+	},
+	"validations": [],
+	"relations": {
+		"characters": {
+			"type": "belongsTo",
+			"model": "Characters",
+			"foreignKey": "characterid"
+		},
+		"tags": {
+			"type": "belongsTo",
+			"model": "Tags",
+			"foreignKey": "tagid"
+		}
+	}
 }

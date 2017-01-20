@@ -1,7 +1,5 @@
 const _ = require( 'lodash' );
 
-const venues = _.map( require( '../fixtures/venues.json' ), 'id' );
-
 module.exports = function( Core ) {
 
 	/**
@@ -38,9 +36,9 @@ module.exports = function( Core ) {
 		let acls = _.get( sharedMethod, 'ctor.settings.acls', {} );
 
 		if ( acls[ sharedMethod.name ] ) {
-			callback( null, checkPerms( acls[ sharedMethod.name ], token ) );
+			callback( null, Core.checkPerms( acls[ sharedMethod.name ], token, ctx ) );
 		} else if ( acls[ sharedMethod.accessType ] ) {
-			callback( null, checkPerms( acls[ sharedMethod.accessType ], token ) );
+			callback( null, Core.checkPerms( acls[ sharedMethod.accessType ], token, ctx ) );
 		} else {
 			callback( null, false );
 		}
@@ -73,39 +71,54 @@ module.exports = function( Core ) {
 		.then( tree => token.units.map( unit => iterateTree( tree, unit ) ) )
 		.then( tree => _.flattenDeep( tree ) );
 	};
-};
 
 
-/**
- * Checks the permissions for a given type of read.
- * @param {Array|String} perms Array or string of permissions.
- * @param {Object}       token Object of user data.
- * @return {boolean}
- */
-function checkPerms( perms, token ) {
-	if ( '*' === perms ) {
-		return true;
-	}
-
-	if ( _.isString( perms ) ) {
-		perms = [ perms ];
-	}
-
-	_.flatMap( perms, perm => {
-		venues.forEach( venue => {
-			perms.push( perm + '_' + venue );
-		});
-	});
-	perms.push( 'admin' );
-
-	let units = [];
-	for ( let office in token.offices ) {
-		if ( _.intersection( token.offices[ office ], perms ).length ) {
-			units.push( parseInt( office ) );
+	/**
+	 * Checks the permissions for a given type of read.
+	 * @param {Array|String} perms Array or string of permissions.
+	 * @param {Object}       token Object of user data.
+	 * @param {Object}       ctx   Context object.
+	 * @return {boolean}
+	 */
+	Core.checkPerms = ( perms, token, ctx ) => {
+		if ( '*' === perms ) {
+			return true;
 		}
+
+		perms = Core.normalizePerms( perms, ctx.args );
+
+		let units = [];
+		for ( let office in token.offices ) {
+			if ( _.intersection( token.offices[ office ], perms ).length ) {
+				units.push( parseInt( office ) );
+			}
+		}
+
+		token.units = units;
+
+		return !! units.length;
 	}
 
-	token.units = units;
 
-	return !! units.length;
-}
+	/**
+	 * Normalizes permissions.
+	 * @param {Array|String} perms List of permissions to normalize.
+	 * @param {Object}       args  Array of arguments passed to method.
+	 * @return {Array}
+	 */
+	Core.normalizePerms = ( perms, args ) => {
+		if ( _.isString( perms ) ) {
+			perms = [ perms ];
+		}
+
+		let venue    = _.get( args, 'filter.where.venue', false );
+		let newPerms = [];
+		if ( venue ) {
+			perms.forEach( perm => {
+				newPerms.push( `${perm}_${venue}` );
+			});
+		}
+
+		return _.concat( perms, newPerms, 'admin' );
+	}
+};
