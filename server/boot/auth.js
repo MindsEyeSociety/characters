@@ -36,7 +36,7 @@ module.exports = function( app ) {
 					} else if ( allowed ) {
 						next();
 					} else {
-						next( new AuthError() );
+						next( AuthError() );
 					}
 				}
 			);

@@ -2,6 +2,8 @@ module.exports = () => function( err, req, res, next ) {
 
 	require( 'pretty-error' ).start();
 
-	console.error( err.stack );
+	if ( err.stack ) {
+		console.error( err.stack );
+	}
 	next( err );
 };

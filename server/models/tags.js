@@ -20,6 +20,32 @@ module.exports = function( Tag ) {
 	Tag.beforeRemote( 'upsertWithWhere', restrictUpdateBefore );
 	Tag.beforeRemote( 'upsert', restrictUpdateBefore );
 
+	Tag.observe( 'before save', ( ctx, next ) => {
+		let perms = [ 'character_tag_edit' ];
+		let venue;
+
+		if ( ctx.isNewInstance && ctx.instance.venue ) {
+			venue = ctx.instance.venue;
+		} else if ( ctx.currentInstance ) {
+			venue = ctx.currentInstance.venue;
+		}
+
+		if ( venue ) {
+			perms.push( `character_tag_edit_${venue}` );
+		}
+
+		let hasPermission = Tag.checkPerms(
+			perms,
+			{ offices: _.get( ctx.options, 'offices' ) }
+		);
+
+		if ( ! hasPermission ) {
+			next( AuthError() );
+		} else {
+			next();
+		}
+	});
+
 	/**
 	 * Sets up validation.
 	 */
@@ -41,7 +67,7 @@ function restrictBefore( ctx, instance, next ) {
 		_.set( ctx.args, 'filter.where.type', 'PC' );
 		return next();
 	} else if ( 'PC' !== type && 'NPC' !== type ) {
-		return next( new RequestError( 'Invalid filter type' ) );
+		return next( RequestError( 'Invalid filter type' ) );
 	}
 
 	if ( 'PC' === type ) {
@@ -52,7 +78,7 @@ function restrictBefore( ctx, instance, next ) {
 	let hasPermission = Tag.checkPerms( 'npc_view', ctx.req.accessToken, ctx );
 
 	if ( ! hasPermission ) {
-		next( new AuthError() );
+		next( AuthError() );
 	} else {
 		next();
 	}
@@ -74,7 +100,7 @@ function restrictAfter( ctx, instance, next ) {
 	let hasPermission = Tag.checkPerms( 'npc_view', ctx.req.accessToken, ctx );
 
 	if ( ! hasPermission ) {
-		next( new AuthError() );
+		next( AuthError() );
 	} else {
 		next();
 	}
@@ -92,7 +118,7 @@ function restrictUpdateBefore( ctx, instance, next ) {
 	let perms = _.get( ctx.req.accessToken, 'offices.1' );
 
 	if ( ! perms || ! 'character_tag_edit' in perms ) {
-		return next( new AuthError() );
+		return next( AuthError() );
 	}
 	next();
 }

@@ -1,5 +1,7 @@
 const _ = require( 'lodash' );
 
+const venues = _.map( require( '../fixtures/venues' ), 'id' );
+
 module.exports = function( Core ) {
 
 	/**
@@ -14,7 +16,8 @@ module.exports = function( Core ) {
 		}
 
 		return {
-			currentUserId: ctx.req.accessToken.id
+			currentUserId: ctx.req.accessToken.id,
+			offices: ctx.req.accessToken.offices
 		}
 	};
 
@@ -34,6 +37,8 @@ module.exports = function( Core ) {
 	 */
 	Core.checkAccess = ( token, modelId, sharedMethod, ctx, callback ) => {
 		let acls = _.get( sharedMethod, 'ctor.settings.acls', {} );
+
+		Core.looseCheck = true;
 
 		if ( acls[ sharedMethod.name ] ) {
 			callback( null, Core.checkPerms( acls[ sharedMethod.name ], token, ctx ) );
@@ -85,7 +90,9 @@ module.exports = function( Core ) {
 			return true;
 		}
 
-		perms = Core.normalizePerms( perms, ctx.args );
+		perms = Core.normalizePerms( perms, ctx );
+
+		Core.looseCheck = false;
 
 		let units = [];
 		for ( let office in token.offices ) {
@@ -103,20 +110,28 @@ module.exports = function( Core ) {
 	/**
 	 * Normalizes permissions.
 	 * @param {Array|String} perms List of permissions to normalize.
-	 * @param {Object}       args  Array of arguments passed to method.
+	 * @param {Object}       ctx   Context object.
 	 * @return {Array}
 	 */
-	Core.normalizePerms = ( perms, args ) => {
+	Core.normalizePerms = ( perms, ctx = {} ) => {
 		if ( _.isString( perms ) ) {
 			perms = [ perms ];
 		}
 
-		let venue    = _.get( args, 'filter.where.venue', false );
 		let newPerms = [];
-		if ( venue ) {
+		if ( Core.looseCheck ) {
 			perms.forEach( perm => {
-				newPerms.push( `${perm}_${venue}` );
+				venues.forEach( venue => {
+					newPerms.push( `${perm}_${venue}` );
+				});
 			});
+		} else {
+			let venue = _.get( ctx.args, 'filter.where.venue', false );
+			if ( venue ) {
+				perms.forEach( perm => {
+					newPerms.push( `${perm}_${venue}` );
+				});
+			}
 		}
 
 		return _.concat( perms, newPerms, 'admin' );
