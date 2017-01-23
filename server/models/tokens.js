@@ -67,6 +67,7 @@ module.exports = function( Token ) {
 		}
 
 		const reqHub = url => {
+			console.log( 'reqHub:', Token.app.get( 'env' ), url, token );
 			if ( 'testing' === Token.app.get( 'env' ) ) {
 				return require( '../../test/hub' )( url, token );
 			}
