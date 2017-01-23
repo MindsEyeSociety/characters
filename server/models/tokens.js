@@ -67,7 +67,6 @@ module.exports = function( Token ) {
 		}
 
 		const reqHub = url => {
-			console.log( 'reqHub:', Token.app.get( 'env' ), url, token );
 			if ( 'testing' === Token.app.get( 'env' ) ) {
 				return require( '../../test/hub' )( url, token );
 			}
@@ -77,8 +76,6 @@ module.exports = function( Token ) {
 				json: true
 			});
 		};
-
-		console.log( 'getting hub data' );
 
 		return Promise.join(
 			reqHub( '/user/me' ),
@@ -101,7 +98,6 @@ module.exports = function( Token ) {
 		)
 		.then( user => cb( null, user ) )
 		.catch( err => {
-			console.log( 'got an error' );
 			return cb( AuthError( _.get( err, 'response.body.message' ) ) );
 		});
 	};

@@ -51,6 +51,8 @@ module.exports = function( url, token ) {
 		return tree;
 	}
 
+	console.log( 'Still here', responses[ url ][ token ] );
+
 	if ( responses[ url ] ) {
 		let resp = _.get( responses, `${url}.${token}`, responses[ url ].default );
 
