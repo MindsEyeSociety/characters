@@ -1,7 +1,5 @@
-const path = require( 'path' );
-
-const app = require( path.resolve( __dirname, '../server/server' ) );
-const ds = app.datasources.mysql;
+const app = require( '../server/server' );
+const ds  = app.datasources.mysql;
 
 const models = [ 'Characters', 'CharacterTags', 'Tags', 'TextSheets' ];
 

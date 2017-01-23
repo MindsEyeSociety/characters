@@ -5,10 +5,12 @@ const request   = require( 'request-promise' );
 const Promise   = require( 'bluebird' );
 
 const cache     = require( '../helpers/cache' ).async;
+const AuthError = require( '../helpers/errors' ).AuthError;
 
 /**
  * Gets a tree of org units and cache it.
  * @param {String} token Valid token.
+ * @param {String} host  URL of user hub.
  * @return {Array}
  */
 function getOrgTree( token, host ) {
@@ -21,6 +23,12 @@ function getOrgTree( token, host ) {
 		memo.push( map );
 		return memo;
 	};
+
+	let server = require( '../server' );
+
+	if ( 'testing' === server.get( 'env' ) ) {
+		return require( '../../test/hub' )( 'tree' );
+	}
 
 	return cache.get( 'org-tree' )
 	.then( tree => {
@@ -55,16 +63,19 @@ module.exports = function( Token ) {
 		}
 
 		if ( ! token ) {
-			let err = new Error( 'Token not provided' );
-			err.status = 403;
-			return cb( err );
+			return cb( AuthError() );
 		}
 
-		const reqHub = url => request({
-			url: host + url,
-			qs: { token },
-			json: true
-		});
+		const reqHub = url => {
+			if ( 'testing' === Token.app.get( 'env' ) ) {
+				return require( '../../test/hub' )( url, token );
+			}
+			return request({
+				url: host + url,
+				qs: { token },
+				json: true
+			});
+		};
 
 		return Promise.join(
 			reqHub( '/user/me' ),
@@ -87,10 +98,7 @@ module.exports = function( Token ) {
 		)
 		.then( user => cb( null, user ) )
 		.catch( err => {
-			let error = new Error();
-			error.message = _.get( err, 'response.body.message', 'Token error' );
-			error.status = 403;
-			return cb( error );
+			return cb( AuthError( _.get( err, 'response.body.message' ) ) );
 		});
 	};
 };

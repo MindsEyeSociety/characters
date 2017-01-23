@@ -12,7 +12,7 @@ module.exports = function( Core ) {
 	Core.createOptionsFromRemotingContext = ctx => {
 
 		if ( ! _.get( ctx, 'req.accessToken.id' ) ) {
-			throw new Error( 'Invalid token provided' );
+			return {};
 		}
 
 		return {
@@ -36,17 +36,25 @@ module.exports = function( Core ) {
 	 * @param {Boolean} allowed True if the request is allowed; false otherwise.
 	 */
 	Core.checkAccess = ( token, modelId, sharedMethod, ctx, callback ) => {
+
+		// Exit if we don't have a token.
+		if ( ! token ) {
+			return callback( null, false );
+		}
+
 		let acls = _.get( sharedMethod, 'ctor.settings.acls', {} );
 
 		Core.looseCheck = true;
+		let perm = false;
 
 		if ( acls[ sharedMethod.name ] ) {
-			callback( null, Core.checkPerms( acls[ sharedMethod.name ], token, ctx ) );
+			perm = Core.checkPerms( acls[ sharedMethod.name ], token, ctx );
 		} else if ( acls[ sharedMethod.accessType ] ) {
-			callback( null, Core.checkPerms( acls[ sharedMethod.accessType ], token, ctx ) );
-		} else {
-			callback( null, false );
+			perm = Core.checkPerms( acls[ sharedMethod.accessType ], token, ctx );
 		}
+
+		Core.looseCheck = false;
+		callback( null, perm );
 	};
 
 	/**

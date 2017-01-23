@@ -31,7 +31,9 @@
     "grunt": "^1.0.1",
     "grunt-eslint": "^19.0.0",
     "nsp": "^2.1.0",
-    "pretty-error": "^2.0.2"
+    "pretty-error": "^2.0.2",
+    "should": "^11.1.2",
+    "supertest": "^2.0.1"
   },
   "repository": {
     "type": "",

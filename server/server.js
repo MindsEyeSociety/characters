@@ -23,16 +23,15 @@ boot( app, __dirname, function( err ) {
 		throw err;
 	}
 
+	app.use( loopback.token({
+		params: [ 'token' ],
+		cookies: [ 'token' ],
+		headers: [ 'token', 'X-Token-Auth' ],
+		model: app.registry.getModel( 'Tokens' )
+	}) );
+
 	// start the server if `$ node server.js`
 	if ( require.main === module ) {
-
-		app.use( loopback.token({
-			params: [ 'token' ],
-			cookies: [ 'token' ],
-			headers: [ 'token', 'X-Token-Auth' ],
-			model: app.registry.getModel( 'Tokens' )
-		}) );
-
 		app.start();
 	}
 });

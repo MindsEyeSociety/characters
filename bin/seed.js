@@ -1,64 +1,60 @@
-const path = require( 'path' );
+const Promise = require( 'bluebird' );
 
-const app = require( path.resolve( __dirname, '../server/server' ) );
-
-const max = 4;
-
-var seeded = 0;
+const app = require( '../server/server' );
 
 function seed( table, data ) {
 	let model = app.models[ table ];
-	model.destroyAll( () => model.create( data, err => {
+	let oldPerms = model.checkPerms;
+	model.checkPerms = () => true;
+	return model.destroyAll( () => model.create( data, err => {
 		if ( err ) {
 			throw err;
 		}
-		console.log( `Finished seeding ${table}.` );
-		seeded++;
-		if ( max === seeded ) {
-			process.exit();
-		}
+		model.checkPerms = oldPerms;
 	}) );
 }
 
-seed( 'Characters', [
+var promises = [];
+
+promises.push( seed( 'Characters', [
 	{
 		'userid': 1,
 		'name': 'Lark Perzy Winslow Pellettieri McPhee',
 		'type': 'PC',
-		'venue': 'Cam/Anarch',
+		'venue': 'cam-anarch',
 		'orgunit': 4
 	},
 	{
 		'userid': 2,
 		'name': 'Messingw',
 		'type': 'NPC',
-		'venue': 'Changeling',
+		'venue': 'space',
 		'orgunit': 4
 	}
-]);
+]) );
 
 
-seed( 'Tags', [
+promises.push( seed( 'Tags', [
 	{
 		'name': 'Toreador',
-		'venue': 'Cam/Anarch'
+		'venue': 'cam-anarch'
 	},
 	{
 		'name': 'Camarilla',
-		'venue': 'Cam/Anarch'
+		'venue': 'cam-anarch'
 	},
 	{
 		'name': 'Neonate',
-		'venue': 'Cam/Anarch'
+		'venue': 'cam-anarch'
 	},
 	{
 		'name': 'Actor',
-		'venue': 'Changeling',
+		'venue': 'space',
 		'type': 'NPC'
 	}
-]);
+]) );
 
-seed( 'TextSheets', [
+promises.push( seed( 'TextSheets', [
 	{
 		'characterid': 1,
 		'sheet': 'first sheet',
@@ -81,9 +77,9 @@ seed( 'TextSheets', [
 		'modifiedat': '2017-01-01 00:00:00',
 		'modifiedby': 2
 	}
-]);
+]) );
 
-seed( 'CharacterTags', [
+promises.push( seed( 'CharacterTags', [
 	{
 		'characterid': 1,
 		'tagid': 1
@@ -100,4 +96,19 @@ seed( 'CharacterTags', [
 		'characterid': 2,
 		'tagid': 4
 	}
-]);
+]) );
+
+module.exports = function( done ) {
+	return Promise.all( promises )
+	.then( all => {
+		if ( done ) {
+			done();
+		} else {
+			console.log( `Seeded ${all.length} tables.` );
+		}
+	});
+}
+
+if ( require.main === module ) {
+	module.exports();
+}
