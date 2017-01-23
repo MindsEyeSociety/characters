@@ -17,11 +17,11 @@ function defaultTests( url, method = 'get' ) {
 		[ method ]( url )
 		.query({ token: 'invalid' })
 		.end( ( err, resp ) => {
+			console.log( resp.status );
+			console.log( resp.body );
 			if ( err ) {
 				throw err;
 			}
-			console.log( resp.status );
-			console.log( resp.body );
 			done();
 		});
 		// .expect( 403, done );
