@@ -6,7 +6,7 @@
     "lint": "eslint .",
     "start": "node .",
     "posttest": "npm run lint && nsp check",
-	"test": "eslint . && mocha"
+    "test": "mocha"
   },
   "dependencies": {
     "bluebird": "^3.4.7",
@@ -27,10 +27,8 @@
   },
   "devDependencies": {
     "eslint": "^3.13.1",
-    "eslint-config-loopback": "^7.0.1",
     "eslint-config-wordpress": "^1.1.0",
-    "grunt": "^1.0.1",
-    "grunt-eslint": "^19.0.0",
+    "mocha": "^3.2.0",
     "nsp": "^2.1.0",
     "pretty-error": "^2.0.2",
     "should": "^11.1.2",
