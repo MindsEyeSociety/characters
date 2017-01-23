@@ -12,11 +12,19 @@ function defaultTests( url, method = 'get' ) {
 		.expect( 403, done );
 	});
 
-	it( 'fails if an invalid token is provided', function( done ) {
+	it.only( 'fails if an invalid token is provided', function( done ) {
 		supertest( app )
 		[ method ]( url )
 		.query({ token: 'invalid' })
-		.expect( 403, done );
+		.end( ( err, resp ) => {
+			if ( err ) {
+				throw err;
+			}
+			console.log( resp.status );
+			console.log( resp.body );
+			done();
+		});
+		// .expect( 403, done );
 	});
 
 	it( 'works if a valid token is provided', function( done ) {
