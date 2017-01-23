@@ -34,6 +34,11 @@ module.exports = function( Tag ) {
 			perms.push( `character_tag_edit_${venue}` );
 		}
 
+		if ( Tag.bypassPerms ) {
+			Tag.bypassPerms = false;
+			return next();
+		}
+
 		let hasPermission = Tag.checkPerms(
 			perms,
 			{ offices: _.get( ctx.options, 'offices' ) }
@@ -51,6 +56,15 @@ module.exports = function( Tag ) {
 	 */
 	Tag.validatesInclusionOf( 'type', { in: [ 'NPC', 'PC' ] } );
 	Tag.validatesInclusionOf( 'venue', { in: venues } );
+
+	/**
+	 * Sets up a way to completely bypass permissions.
+	 * @return {Tag}
+	 */
+	Tag.bypass = function() {
+		Tag.bypassPerms = true;
+		return Tag;
+	}
 };
 
 /**

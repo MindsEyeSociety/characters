@@ -18,13 +18,6 @@ function defaultTests( url, method = 'get' ) {
 		.query({ token: 'invalid' })
 		.expect( 403, done );
 	});
-
-	it( 'works if a valid token is provided', function( done ) {
-		supertest( app )
-		[ method ]( url )
-		.query({ token: 'user1' })
-		.expect( 200, done );
-	});
 }
 
 module.exports = {

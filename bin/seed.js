@@ -100,15 +100,12 @@ promises.push( seed( 'CharacterTags', [
 
 module.exports = function( done ) {
 	return Promise.all( promises )
-	.then( all => {
-		if ( done ) {
-			done();
-		} else {
-			console.log( `Seeded ${all.length} tables.` );
-		}
-	});
+	.then( () => done() );
 }
 
 if ( require.main === module ) {
-	module.exports();
+	module.exports( () => {
+		console.log( `Seeded ${promises.length} tables.` );
+		process.exit();
+	});
 }

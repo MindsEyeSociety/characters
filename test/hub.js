@@ -13,6 +13,7 @@ const responses = {
 	},
 	'/office/me': {
 		'nst': [{ parentOrgID: 1, roles: [ 'character_tag_edit', 'npc_view' ] }],
+		'anst': [{ parentOrgID: 1, roles: [ 'character_tag_edit_space' ] }],
 		'dst': [{ parentOrgID: 3, roles: [ 'character_view', 'npc_view' ] }],
 		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch' ] }],
 		'otherDst': [{ parentOrgID: 6, roles: [ 'npc_view' ] }],
