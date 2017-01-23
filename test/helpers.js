@@ -13,6 +13,7 @@ function defaultTests( url, method = 'get' ) {
 	});
 
 	it( 'fails if an invalid token is provided', function( done ) {
+		console.log( 'testing', url );
 		supertest( app )
 		[ method ]( url )
 		.query({ token: 'invalid' })
