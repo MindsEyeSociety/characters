@@ -2,6 +2,10 @@ language: node_js
 node_js:
   - "7.3"
 env:
-  - NODE_ENV=testing DEBUG=characters:testing
+  - NODE_ENV=testing
 before_script:
   - cp server/datasources.default.json server/datasources.json
+notifications:
+  email:
+    on_success: never
+    on_failure: always

@@ -98,6 +98,7 @@ module.exports = function( Token ) {
 		)
 		.then( user => cb( null, user ) )
 		.catch( err => {
+			console.log( 'Error:', err );
 			return cb( AuthError( _.get( err, 'response.body.message' ) ) );
 		});
 	};
