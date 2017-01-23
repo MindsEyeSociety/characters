@@ -35,9 +35,12 @@
     "supertest": "^2.0.1"
   },
   "repository": {
-    "type": "",
-    "url": ""
+    "type": "git",
+    "url": "https://github.com/MindsEyeSociety/characters"
   },
-  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/MindsEyeSociety/characters/issues"
+  },
+  "license": "MIT",
   "description": "character"
 }

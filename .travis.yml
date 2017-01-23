@@ -3,5 +3,6 @@ node_js:
   - "7.3"
 env:
   - NODE_ENV=testing
+  - DEBUG=characters:hub
 before_script:
   - cp server/datasources.default.json server/datasources.json
