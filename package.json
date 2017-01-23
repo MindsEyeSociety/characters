@@ -5,7 +5,8 @@
   "scripts": {
     "lint": "eslint .",
     "start": "node .",
-    "posttest": "npm run lint && nsp check"
+    "posttest": "npm run lint && nsp check",
+	"test": "eslint . && mocha"
   },
   "dependencies": {
     "bluebird": "^3.4.7",
