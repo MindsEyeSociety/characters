@@ -4,5 +4,4 @@ node_js:
 env:
   - NODE_ENV=testing
 before_script:
-  - npm install -g eslint
   - cp server/datasources.default.json server/datasources.json
