@@ -57,6 +57,7 @@ module.exports = function( url, token ) {
 		debug( 'Returning ' + inspect( resp ) );
 
 		if ( _.isError( resp ) ) {
+			console.log( 'hub returning an error' );
 			return Promise.reject( resp );
 		} else {
 			return resp;

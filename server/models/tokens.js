@@ -77,6 +77,8 @@ module.exports = function( Token ) {
 			});
 		};
 
+		console.log( 'getting hub data' );
+
 		return Promise.join(
 			reqHub( '/user/me' ),
 			reqHub( '/office/me' ),
@@ -98,6 +100,7 @@ module.exports = function( Token ) {
 		)
 		.then( user => cb( null, user ) )
 		.catch( err => {
+			console.log( 'got an error' );
 			return cb( AuthError( _.get( err, 'response.body.message' ) ) );
 		});
 	};
