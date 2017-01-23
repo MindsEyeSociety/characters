@@ -17,15 +17,7 @@ function defaultTests( url, method = 'get' ) {
 		supertest( app )
 		[ method ]( url )
 		.query({ token: 'invalid' })
-		.end( ( err, resp ) => {
-			console.log( resp.status );
-			console.log( resp.body );
-			if ( err ) {
-				throw err;
-			}
-			done();
-		});
-		// .expect( 403, done );
+		.expect( 403, done );
 	});
 
 	it( 'works if a valid token is provided', function( done ) {
