@@ -9,7 +9,7 @@ const responses = {
 		'user1': { id: 1 },
 		'user2': { id: 2 },
 		'default': { id: 3 },
-		'invalid': new Error()
+		'invalid': false
 	},
 	'/office/me': {
 		'nst': [{ parentOrgID: 1, roles: [ 'character_tag_edit', 'npc_view' ] }],
@@ -56,7 +56,7 @@ module.exports = function( url, token ) {
 
 		debug( 'Returning ' + inspect( resp ) );
 
-		if ( _.isError( resp ) ) {
+		if ( false === resp ) {
 			return Promise.reject( resp );
 		} else {
 			return resp;
