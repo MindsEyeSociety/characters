@@ -12,7 +12,7 @@ function defaultTests( url, method = 'get' ) {
 		.expect( 403, done );
 	});
 
-	it.only( 'fails if an invalid token is provided', function( done ) {
+	it( 'fails if an invalid token is provided', function( done ) {
 		supertest( app )
 		[ method ]( url )
 		.query({ token: 'invalid' })
