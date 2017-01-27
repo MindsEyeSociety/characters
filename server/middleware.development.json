@@ -1,6 +1,8 @@
 {
 	"final:after": {
-		"./middleware/dev-error": {},
+		"./middleware/dev-error": {
+			"enabled": true
+		},
 		"strong-error-handler": {
 			"params": {
 				"debug": true,

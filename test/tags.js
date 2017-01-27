@@ -99,13 +99,13 @@ module.exports = function() {
 		});
 	});
 
-	const updateOrInsert = ( method ) => function() {
+	const insertBob = method => function() {
 
 		helpers.defaultTests( '/v1/tags', method );
 
 		afterEach( 'resets test data', function( done ) {
 			Promise.join(
-				Tag.bypass().destroyById( 5 ),
+				Tag.bypass().destroyAll({ id: { gt: 4 } }),
 				Tag.bypass().replaceById( 1, { name: 'Toreador', venue: 'cam-anarch' } ),
 				() => done()
 			).catch( err => done( err ) );
@@ -131,6 +131,27 @@ module.exports = function() {
 				Tag.findById( resp.body.id )
 				.then( instance => {
 					resp.body.should.deepEqual( instance.toJSON() );
+					done();
+				});
+			});
+		});
+
+		it( 'works for updating with correct permission', function( done ) {
+			request[ method ]( '/v1/tags' )
+			.query({ token: 'nst' })
+			.send({ id: 1, venue: 'cam-anarch', name: 'Test' })
+			.expect( 'post' !== method ? 200 : 500 )
+			.end( err => {
+				if ( err ) {
+					done( err );
+				}
+				if ( 'post' === method ) {
+					return done();
+				}
+				Tag.findById( 1 )
+				.then( tag => {
+					tag.should.have.property( 'name', 'Test' );
+					tag.should.have.property( 'id', 1 );
 					done();
 				});
 			});
@@ -162,17 +183,23 @@ module.exports = function() {
 		});
 	};
 
-	describe( 'PATCH /', updateOrInsert( 'patch' ) );
-	describe( 'PUT /', updateOrInsert( 'put' ) );
-	describe( 'POST /', updateOrInsert( 'post' ) );
+	describe( 'PATCH /', insertBob( 'patch' ) );
+	describe( 'PUT /', insertBob( 'put' ) );
+	describe( 'POST /', insertBob( 'post' ) );
 
-	describe( 'GET /id', function() {
+	describe( 'GET /{id}', function() {
 		helpers.defaultTests( '/v1/tags/1' );
 
 		it( 'works if a valid token is provided', function( done ) {
 			request.get( '/v1/tags/1' )
 			.query({ token: 'user1' })
 			.expect( 200, done );
+		});
+
+		it( 'fails if the tag doesn\'t exist', function( done ) {
+			request.get( '/v1/tags/10' )
+			.query({ token: 'user1' })
+			.expect( 404, done );
 		});
 
 		it( 'provides the correct data', function( done ) {
@@ -214,6 +241,125 @@ module.exports = function() {
 		it( 'works for NPC tag with right venue permission', function( done ) {
 			request.get( '/v1/tags/4' )
 			.query({ token: 'dst' })
+			.expect( 200, done );
+		});
+	});
+
+	describe( 'HEAD /{id}', function() {
+		helpers.defaultTests( '/v1/tags', 'head' );
+
+		it( 'works if a valid token is provided', function( done ) {
+			request.head( '/v1/tags/1' )
+			.query({ token: 'user1' })
+			.expect( 200, done );
+		});
+
+		it( 'fails if the tag doesn\'t exist', function( done ) {
+			request.head( '/v1/tags/10' )
+			.query({ token: 'user1' })
+			.expect( 404, done );
+		});
+	});
+
+	const update = method => function() {
+		helpers.defaultTests( '/v1/tags', method );
+
+		afterEach( 'resets test data', function( done ) {
+			Promise.join(
+				Tag.bypass().replaceById( 1, { name: 'Toreador', venue: 'cam-anarch' }),
+				Tag.bypass().replaceById( 4, { name: 'Actor', venue: 'space' }),
+				() => done()
+			)
+			.catch( err => done( err ) );
+		});
+
+		it( 'fails for updating without correct permission', function( done ) {
+			request[ method ]( '/v1/tags/1' )
+			.query({ token: 'dst' })
+			.send({ venue: 'cam-anarch', name: 'Test' })
+			.expect( 403, done );
+		});
+
+		it( 'works for updating with correct permission', function( done ) {
+			request[ method ]( '/v1/tags/1' )
+			.query({ token: 'nst' })
+			.send({ venue: 'cam-anarch', name: 'Test' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					done( err );
+				}
+				resp.body.should.have.property( 'id' );
+				Tag.findById( resp.body.id )
+				.then( instance => {
+					resp.body.should.deepEqual( instance.toJSON() );
+					done();
+				});
+			});
+		});
+
+		it( 'fails for updating without correct venue permission', function( done ) {
+			request[ method ]( '/v1/tags/1' )
+			.query({ token: 'anst' })
+			.send({ venue: 'cam-anarch', name: 'Test' })
+			.expect( 403, done );
+		});
+
+		it( 'works for updating with correct venue permission', function( done ) {
+			request[ method ]( '/v1/tags/4' )
+			.query({ token: 'anst' })
+			.send({ venue: 'space', name: 'Test' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					done( err );
+				}
+				resp.body.should.have.property( 'id' );
+				Tag.findById( resp.body.id )
+				.then( instance => {
+					resp.body.should.deepEqual( instance.toJSON() );
+					done();
+				});
+			});
+		});
+	};
+
+	describe( 'PATCH /{id}', update( 'patch' ) );
+	describe( 'PUT /{id}', update( 'put' ) );
+
+	describe( 'DELETE /{id}', function() {
+		helpers.defaultTests( '/v1/tags', 'delete' );
+
+		afterEach( 'resets test data', function( done ) {
+			Promise.join(
+				Tag.bypass().upsert({ id: 1, name: 'Toreador', venue: 'cam-anarch', type: 'PC' }),
+				Tag.bypass().upsert({ id: 4, name: 'Actor', venue: 'space', type: 'NPC' }),
+				() => done()
+			)
+			.catch( err => done( err ) );
+		});
+
+		it( 'fails for updating without correct permission', function( done ) {
+			request.delete( '/v1/tags/1' )
+			.query({ token: 'dst' })
+			.expect( 403, done );
+		});
+
+		it( 'works for updating with correct permission', function( done ) {
+			request.delete( '/v1/tags/1' )
+			.query({ token: 'nst' })
+			.expect( 200, done );
+		});
+
+		it( 'fails for updating without correct venue permission', function( done ) {
+			request.delete( '/v1/tags/1' )
+			.query({ token: 'anst' })
+			.expect( 403, done );
+		});
+
+		it( 'works for updating with correct venue permission', function( done ) {
+			request.delete( '/v1/tags/4' )
+			.query({ token: 'anst' })
 			.expect( 200, done );
 		});
 	});

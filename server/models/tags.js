@@ -13,7 +13,6 @@ module.exports = function( Tag ) {
 	Tag.beforeRemote( 'findOne', restrictBefore );
 
 	Tag.afterRemote( 'findById', restrictAfter );
-	Tag.afterRemote( 'exists', restrictAfter );
 
 	Tag.beforeRemote( 'create', restrictUpdateBefore );
 	Tag.beforeRemote( 'updateOrCreate', restrictUpdateBefore );
@@ -21,6 +20,11 @@ module.exports = function( Tag ) {
 	Tag.beforeRemote( 'upsert', restrictUpdateBefore );
 
 	Tag.observe( 'before save', ( ctx, next ) => {
+		if ( Tag.bypassPerms ) {
+			Tag.bypassPerms = false;
+			return next();
+		}
+
 		let perms = [ 'character_tag_edit' ];
 		let venue;
 
@@ -28,15 +32,12 @@ module.exports = function( Tag ) {
 			venue = ctx.instance.venue;
 		} else if ( ctx.currentInstance ) {
 			venue = ctx.currentInstance.venue;
+		} else if ( ctx.instance ) {
+			venue = ctx.instance.venue;
 		}
 
 		if ( venue ) {
 			perms.push( `character_tag_edit_${venue}` );
-		}
-
-		if ( Tag.bypassPerms ) {
-			Tag.bypassPerms = false;
-			return next();
 		}
 
 		let hasPermission = Tag.checkPerms(
@@ -49,6 +50,31 @@ module.exports = function( Tag ) {
 		} else {
 			next();
 		}
+	});
+
+	Tag.observe( 'before delete', ( ctx, next ) => {
+		if ( Tag.bypassPerms ) {
+			Tag.bypassPerms = false;
+			return next();
+		}
+
+		let offices = { offices: _.get( ctx.options, 'offices' ) };
+
+		if ( Tag.checkPerms( 'character_tag_delete', offices ) ) {
+			return next();
+		}
+
+		if ( ! ctx.where.id ) {
+			return next( AuthError() );
+		}
+
+		Tag.findById( ctx.where.id )
+		.then( tag => {
+			if ( Tag.checkPerms( 'character_tag_delete_' + tag.venue, offices ) ) {
+				return next();
+			}
+			return next( AuthError() );
+		});
 	});
 
 	/**
@@ -106,7 +132,7 @@ function restrictBefore( ctx, instance, next ) {
  * @return {void}
  */
 function restrictAfter( ctx, instance, next ) {
-	if ( 'PC' === ctx.result.type ) {
+	if ( null === ctx.result || 'PC' === ctx.result.type ) {
 		return next();
 	}
 

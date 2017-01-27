@@ -46,7 +46,9 @@
 		"loopback#urlNotFound": {}
 	},
 	"final:after": {
-		"./middleware/dev-error": {},
+		"./middleware/dev-error": {
+			"enabled": false
+		},
 		"strong-error-handler": {}
 	}
 }

@@ -3,6 +3,7 @@
 	"base": "Core",
 	"options": {
 		"idInjection": false,
+		"forceId": false,
 		"mysql": {
 			"schema": "tags",
 			"table": "tags"
