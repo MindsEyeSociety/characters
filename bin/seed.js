@@ -51,6 +51,11 @@ promises.push( seed( 'Tags', [
 		'name': 'Actor',
 		'venue': 'space',
 		'type': 'NPC'
+	},
+	{
+		'name': 'Mage',
+		'venue': 'cam-anarch',
+		'type': 'NPC'
 	}
 ]) );
 

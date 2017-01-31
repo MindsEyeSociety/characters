@@ -11,12 +11,11 @@ module.exports = function( Tag ) {
 	 */
 	Tag.beforeRemote( 'find', restrictBefore );
 	Tag.beforeRemote( 'findOne', restrictBefore );
+	Tag.beforeRemote( 'count', restrictBefore );
 
 	Tag.afterRemote( 'findById', restrictAfter );
 
 	Tag.beforeRemote( 'create', restrictUpdateBefore );
-	Tag.beforeRemote( 'updateOrCreate', restrictUpdateBefore );
-	Tag.beforeRemote( 'upsertWithWhere', restrictUpdateBefore );
 	Tag.beforeRemote( 'upsert', restrictUpdateBefore );
 
 	Tag.observe( 'before save', ( ctx, next ) => {
@@ -84,6 +83,18 @@ module.exports = function( Tag ) {
 	Tag.validatesInclusionOf( 'venue', { in: venues } );
 
 	/**
+	 * Removes related modification endpoints.
+	 */
+	Tag.disableRemoteMethodByName( 'prototype.__create__characters' );
+	Tag.disableRemoteMethodByName( 'prototype.__delete__characters' );
+	Tag.disableRemoteMethodByName( 'prototype.__findById__characters' );
+	Tag.disableRemoteMethodByName( 'prototype.__destroyById__characters' );
+	Tag.disableRemoteMethodByName( 'prototype.__updateById__characters' );
+	Tag.disableRemoteMethodByName( 'prototype.__link__characters' );
+	Tag.disableRemoteMethodByName( 'prototype.__exists__characters' );
+	Tag.disableRemoteMethodByName( 'prototype.__unlink__characters' );
+
+	/**
 	 * Sets up a way to completely bypass permissions.
 	 * @return {Tag}
 	 */
@@ -101,17 +112,26 @@ module.exports = function( Tag ) {
  * @return {void}
  */
 function restrictBefore( ctx, instance, next ) {
+
+	if ( _.has( ctx.args, 'where' ) ) {
+		_.set( ctx.args, 'filter.where', ctx.args.where );
+	}
+
 	let type = _.get( ctx.args, 'filter.where.type' );
 
 	if ( ! type ) {
 		_.set( ctx.args, 'filter.where.type', 'PC' );
+		restoreWhere( ctx.args );
 		return next();
-	} else if ( 'PC' !== type && 'NPC' !== type ) {
+	} else if ( -1 === [ 'NPC', 'PC', 'all' ].indexOf( type ) ) {
 		return next( RequestError( 'Invalid filter type' ) );
 	}
 
 	if ( 'PC' === type ) {
+		restoreWhere( ctx.args );
 		return next();
+	} else if ( 'all' === type ) {
+		delete ctx.args.filter.where.type;
 	}
 
 	let Tag = ctx.method.ctor;
@@ -120,8 +140,18 @@ function restrictBefore( ctx, instance, next ) {
 	if ( ! hasPermission ) {
 		next( AuthError() );
 	} else {
+		restoreWhere( ctx.args );
 		next();
 	}
+}
+
+function restoreWhere( args ) {
+	if ( ! _.has( args, 'where' ) ) {
+		return;
+	}
+
+	args.where = args.filter.where;
+	delete args.filter;
 }
 
 /**

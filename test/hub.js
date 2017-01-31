@@ -13,7 +13,7 @@ const responses = {
 	},
 	'/office/me': {
 		'nst': [{ parentOrgID: 1, roles: [ 'character_tag_edit', 'character_tag_delete', 'npc_view' ] }],
-		'anst': [{ parentOrgID: 1, roles: [ 'character_tag_edit_space', 'character_tag_delete_space' ] }],
+		'anst': [{ parentOrgID: 1, roles: [ 'character_tag_edit_space', 'character_tag_delete_space', 'npc_view_space' ] }],
 		'dst': [{ parentOrgID: 3, roles: [ 'character_view', 'npc_view' ] }],
 		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch' ] }],
 		'otherDst': [{ parentOrgID: 6, roles: [ 'npc_view' ] }],

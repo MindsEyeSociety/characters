@@ -99,13 +99,13 @@ module.exports = function() {
 		});
 	});
 
-	const insertBob = method => function() {
+	const insert = method => function() {
 
 		helpers.defaultTests( '/v1/tags', method );
 
 		afterEach( 'resets test data', function( done ) {
 			Promise.join(
-				Tag.bypass().destroyAll({ id: { gt: 4 } }),
+				Tag.bypass().destroyAll({ id: { gt: 5 } }),
 				Tag.bypass().replaceById( 1, { name: 'Toreador', venue: 'cam-anarch' } ),
 				() => done()
 			).catch( err => done( err ) );
@@ -183,9 +183,8 @@ module.exports = function() {
 		});
 	};
 
-	describe( 'PATCH /', insertBob( 'patch' ) );
-	describe( 'PUT /', insertBob( 'put' ) );
-	describe( 'POST /', insertBob( 'post' ) );
+	describe( 'PATCH /', insert( 'patch' ) );
+	describe( 'POST /', insert( 'post' ) );
 
 	describe( 'GET /{id}', function() {
 		helpers.defaultTests( '/v1/tags/1' );
@@ -261,8 +260,8 @@ module.exports = function() {
 		});
 	});
 
-	const update = method => function() {
-		helpers.defaultTests( '/v1/tags', method );
+	describe( 'PATCH /{id}', function() {
+		helpers.defaultTests( '/v1/tags', 'patch' );
 
 		afterEach( 'resets test data', function( done ) {
 			Promise.join(
@@ -274,14 +273,14 @@ module.exports = function() {
 		});
 
 		it( 'fails for updating without correct permission', function( done ) {
-			request[ method ]( '/v1/tags/1' )
+			request.patch( '/v1/tags/1' )
 			.query({ token: 'dst' })
 			.send({ venue: 'cam-anarch', name: 'Test' })
 			.expect( 403, done );
 		});
 
 		it( 'works for updating with correct permission', function( done ) {
-			request[ method ]( '/v1/tags/1' )
+			request.patch( '/v1/tags/1' )
 			.query({ token: 'nst' })
 			.send({ venue: 'cam-anarch', name: 'Test' })
 			.expect( 200 )
@@ -299,14 +298,14 @@ module.exports = function() {
 		});
 
 		it( 'fails for updating without correct venue permission', function( done ) {
-			request[ method ]( '/v1/tags/1' )
+			request.patch( '/v1/tags/1' )
 			.query({ token: 'anst' })
 			.send({ venue: 'cam-anarch', name: 'Test' })
 			.expect( 403, done );
 		});
 
 		it( 'works for updating with correct venue permission', function( done ) {
-			request[ method ]( '/v1/tags/4' )
+			request.patch( '/v1/tags/4' )
 			.query({ token: 'anst' })
 			.send({ venue: 'space', name: 'Test' })
 			.expect( 200 )
@@ -322,10 +321,7 @@ module.exports = function() {
 				});
 			});
 		});
-	};
-
-	describe( 'PATCH /{id}', update( 'patch' ) );
-	describe( 'PUT /{id}', update( 'put' ) );
+	});
 
 	describe( 'DELETE /{id}', function() {
 		helpers.defaultTests( '/v1/tags', 'delete' );
@@ -361,6 +357,264 @@ module.exports = function() {
 			request.delete( '/v1/tags/4' )
 			.query({ token: 'anst' })
 			.expect( 200, done );
+		});
+	});
+
+	describe( 'GET /{id}/characters', function() {
+		helpers.defaultTests( '/v1/tags/1/characters' );
+
+		it( 'fails without permission' );
+
+		it( 'works with permission' );
+
+		it( 'provides only valid PCs' );
+	});
+
+	describe( 'GET /{id}/characters/count', function() {
+		helpers.defaultTests( '/v1/tags/1/characters/count' );
+
+		it( 'fails without permission' );
+
+		it( 'works with permission' );
+
+		it( 'provides only valid PC counts' );
+	});
+
+	describe( 'GET /{id}/exists', function() {
+		helpers.defaultTests( '/v1/tags/1/exists' );
+
+		it( 'works if a valid token is provided', function( done ) {
+			request.get( '/v1/tags/1/exists' )
+			.query({ token: 'user1' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'exists', true );
+				done();
+			});
+		});
+
+		it( 'fails if the tag doesn\'t exist', function( done ) {
+			request.get( '/v1/tags/10/exists' )
+			.query({ token: 'user1' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'exists', false );
+				done();
+			});
+		});
+	});
+
+	describe( 'GET /count', function() {
+		helpers.defaultTests( '/v1/tags/count' );
+
+		it( 'gets the correct PC count', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'user1' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'count', 3 );
+				done();
+			});
+		});
+
+		it( 'fails for NPCs without permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'user1' })
+			.query({ where: '{"type":"NPC"}' })
+			.expect( 403, done );
+		});
+
+		it( 'gets the correct NPC count with permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'nst' })
+			.query({ where: '{"type":"NPC"}' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'count', 2 );
+				done();
+			});
+		});
+
+		it( 'fails for NPC count without right venue permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'anst' })
+			.query({ where: '{"type":"NPC","venue":"cam-anarch"}' })
+			.expect( 403, done );
+		});
+
+		it( 'gets NPC count with right venue permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'anst' })
+			.query({ where: '{"type":"NPC","venue":"space"}' })
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'count', 1 );
+				done();
+			});
+		});
+
+		it( 'fails for all without permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'user1' })
+			.query({ where: '{"type":"all"}' })
+			.expect( 403, done );
+		});
+
+		it( 'gets the correct count of all with permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'nst' })
+			.query({ where: '{"type":"all"}' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'count', 5 );
+				done();
+			});
+		});
+
+		it( 'fails for all without right venue permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'anst' })
+			.query({ where: '{"type":"all","venue":"cam-anarch"}' })
+			.expect( 403, done );
+		});
+
+		it( 'gets the correct count of all with right venue permission', function( done ) {
+			request.get( '/v1/tags/count' )
+			.query({ token: 'vst' })
+			.query({ where: '{"type":"all","venue":"cam-anarch"}' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'count', 4 );
+				done();
+			});
+		});
+	});
+
+	describe( 'GET /findOne', function() {
+		helpers.defaultTests( '/v1/tags/findOne' );
+
+		it( 'gets a PC tag', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'user1' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.a.property( 'id', 1 );
+				done();
+			});
+		});
+
+		it( 'fails if PC tag doesn\'t exist', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'user1' })
+			.query({ filter: '{"offset":10}' })
+			.expect( 404, done );
+		});
+
+		it( 'fails for a NPC without permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'user1' })
+			.query({ filter: '{"where":{"type":"NPC"}}' })
+			.expect( 403, done );
+		});
+
+		it( 'works for a NPC with permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'dst' })
+			.query({ filter: '{"where":{"type":"NPC"}}' })
+			.expect( 200, done );
+		});
+
+		it( 'fails for a NPC without venue permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'anst' })
+			.query({ filter: '{"where":{"type":"NPC","venue":"cam-anarch"}}' })
+			.expect( 403, done );
+		});
+
+		it( 'works for a NPC with venue permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'vst' })
+			.query({ filter: '{"where":{"type":"NPC","venue":"cam-anarch"}}' })
+			.expect( 200, done );
+		});
+
+		it( 'fails for all without permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'user1' })
+			.query({ filter: '{"where":{"type":"all"}}' })
+			.expect( 403, done );
+		});
+
+		it( 'works for all with permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'dst' })
+			.query({ filter: '{"where":{"type":"all"}}' })
+			.expect( 200, done );
+		});
+
+		it( 'fails for all without venue permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'anst' })
+			.query({ filter: '{"where":{"type":"all","venue":"cam-anarch"}}' })
+			.expect( 403, done );
+		});
+
+		it( 'works for all with venue permission', function( done ) {
+			request.get( '/v1/tags/findOne' )
+			.query({ token: 'vst' })
+			.query({ filter: '{"where":{"type":"all","venue":"cam-anarch"}}' })
+			.expect( 200, done );
+		});
+	});
+
+	describe( 'Verify disabled endpoints', function() {
+		let endpoints = [
+			[ 'put', '/1' ],
+			[ 'post', '/1/characters' ],
+			[ 'delete', '/1/characters' ],
+			[ 'get', '/1/characters/1' ],
+			[ 'put', '/1/characters/1' ],
+			[ 'delete', '/1/characters/1' ],
+			[ 'head', '/1/characters/rel/1' ],
+			[ 'put', '/1/characters/rel/1' ],
+			[ 'delete', '/1/characters/rel/1' ],
+			[ 'post', '/1/replace' ],
+			[ 'get', '/change-stream' ],
+			[ 'post', '/change-stream' ],
+			[ 'post', '/replaceOrCreate' ],
+			[ 'post', '/update' ],
+			[ 'post', '/upsertWithWhere' ]
+		];
+
+		endpoints.forEach( obj => {
+			it( `${obj[0].toUpperCase()} ${obj[1]}`, function( done ) {
+				request[ obj[0] ]( '/v1/tags' + obj[1] )
+				.query({ token: 'nst' })
+				.expect( 404, done );
+			});
 		});
 	});
 };
