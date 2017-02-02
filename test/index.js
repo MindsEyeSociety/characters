@@ -7,3 +7,5 @@ before( 'seed', function( done ) {
 });
 
 describe( 'Tags', require( './tags' ) );
+
+describe( 'Characters', require( './characters' ) );

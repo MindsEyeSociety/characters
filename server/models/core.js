@@ -64,6 +64,11 @@ module.exports = function( Core ) {
 	 */
 	Core.getTree = token => {
 
+		// Exit if it's a National officer.
+		if ( -1 !== token.units.indexOf( 1 ) ) {
+			return Promise.resolve( true );
+		}
+
 		const cache = require( '../helpers/cache' ).async;
 
 		const iterateTree = ( tree, id ) => {

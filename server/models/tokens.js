@@ -27,7 +27,9 @@ function getOrgTree( token, host ) {
 	let server = require( '../server' );
 
 	if ( 'testing' === server.get( 'env' ) ) {
-		return require( '../../test/hub' )( 'tree' );
+		let tree = require( '../../test/hub' )( 'tree' );
+		cache.set( 'org-tree', tree );
+		return tree;
 	}
 
 	return cache.get( 'org-tree' )

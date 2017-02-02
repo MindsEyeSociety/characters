@@ -23,6 +23,7 @@ promises.push( seed( 'Characters', [
 	{
 		'id': 1,
 		'userid': 1,
+		'orgunit': 4,
 		'name': 'Lark Perzy Winslow Pellettieri McPhee',
 		'type': 'PC',
 		'venue': 'cam-anarch'
@@ -30,9 +31,18 @@ promises.push( seed( 'Characters', [
 	{
 		'id': 2,
 		'userid': 2,
+		'orgunit': 4,
 		'name': 'Messingw',
 		'type': 'NPC',
 		'venue': 'space'
+	},
+	{
+		'id': 3,
+		'userid': 1,
+		'orgunit': 2,
+		'name': 'Codes with Fury',
+		'type': 'PC',
+		'venue': 'apoc'
 	}
 ]) );
 

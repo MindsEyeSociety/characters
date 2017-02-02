@@ -3,6 +3,7 @@
 	"base": "Core",
 	"options": {
 		"idInjection": false,
+		"forceId": false,
 		"mysql": {
 			"schema": "characters",
 			"table": "characters"
@@ -59,7 +60,7 @@
 		},
 		"orgunit": {
 			"type": "Number",
-			"required": true,
+			"required": false,
 			"index": true,
 			"length": null,
 			"precision": 10,
