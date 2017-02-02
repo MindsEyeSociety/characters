@@ -1,4 +1,5 @@
 const Promise = require( 'bluebird' );
+const debug = require( 'debug' )( 'characters' );
 
 const app = require( '../server/server' );
 
@@ -7,10 +8,12 @@ function seed( table, data ) {
 	let oldPerms = model.checkPerms;
 	model.checkPerms = () => true;
 	return model.destroyAll( () => model.create( data, err => {
+		debug( `Seeded ${table}.` );
 		if ( err ) {
 			throw err;
 		}
 		model.checkPerms = oldPerms;
+		return model;
 	}) );
 }
 
@@ -18,18 +21,18 @@ var promises = [];
 
 promises.push( seed( 'Characters', [
 	{
+		'id': 1,
 		'userid': 1,
 		'name': 'Lark Perzy Winslow Pellettieri McPhee',
 		'type': 'PC',
-		'venue': 'cam-anarch',
-		'orgunit': 4
+		'venue': 'cam-anarch'
 	},
 	{
+		'id': 2,
 		'userid': 2,
 		'name': 'Messingw',
 		'type': 'NPC',
-		'venue': 'space',
-		'orgunit': 4
+		'venue': 'space'
 	}
 ]) );
 
@@ -103,13 +106,13 @@ promises.push( seed( 'CharacterTags', [
 	}
 ]) );
 
-module.exports = function( done ) {
+let main = module.exports = function( done ) {
 	return Promise.all( promises )
 	.then( () => done() );
 }
 
 if ( require.main === module ) {
-	module.exports( () => {
+	main( () => {
 		console.log( `Seeded ${promises.length} tables.` );
 		process.exit();
 	});
