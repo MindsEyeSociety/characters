@@ -5,6 +5,7 @@ const _ = require( 'lodash' );
 const findWhere = require( '../helpers/queries' ).findWhere;
 
 module.exports = function( Model ) {
+
 	/**
 	 * Adds the user data to the remote context.
 	 * @param {Object} ctx The remote invocation context.
@@ -18,7 +19,7 @@ module.exports = function( Model ) {
 
 		return {
 			currentUserId: ctx.req.accessToken.id,
-			offices: ctx.req.accessToken.offices
+			offices: ctx.req.accessToken.offices,
 		}
 	};
 

@@ -161,7 +161,7 @@ module.exports = function() {
 					done( err );
 				}
 				resp.body.should.be.an.Array();
-				resp.body.should.have.a.length( 2 );
+				resp.body.should.have.a.length( 1 );
 				done();
 			});
 		});
@@ -251,7 +251,7 @@ module.exports = function() {
 		});
 
 		const newChar = {
-			userid: 10,
+			userid: 11,
 			orgunit: 4,
 			name: 'Test',
 			type: 'PC',
@@ -344,6 +344,86 @@ module.exports = function() {
 
 	describe( 'GET /{id}', function() {
 		helpers.defaultTests( '/v1/characters/1' );
+
+		it( 'fails if getting other PC without permission', function( done ) {
+			request.get( '/v1/characters/3' )
+			.query({ token: 'user1' })
+			.expect( 403, done );
+		});
+
+		it( 'fails if getting NPC without permission', function( done ) {
+			request.get( '/v1/characters/2' )
+			.query({ token: 'user1' })
+			.expect( 403, done );
+		});
+
+		it( 'fails if getting other PC without venue permission', function( done ) {
+			request.get( '/v1/characters/3' )
+			.query({ token: 'user1' })
+			.expect( 403, done );
+		});
+
+		it( 'fails if getting NPC without venue permission', function( done ) {
+			request.get( '/v1/characters/3' )
+			.query({ token: 'anst' })
+			.expect( 403, done );
+		});
+
+		it( 'fails if getting character not under org', function( done ) {
+			request.get( '/v1/characters/3' )
+			.query({ token: 'dst' })
+			.expect( 403, done );
+		});
+
+		it( 'works if getting own PC', function( done ) {
+			request.get( '/v1/characters/1' )
+			.query({ token: 'user1' })
+			.expect( 200, done );
+		});
+
+		it( 'works if getting PC with permission', function( done ) {
+			request.get( '/v1/characters/1' )
+			.query({ token: 'dst' })
+			.expect( 200, done );
+		});
+
+		it( 'works if getting PC with venue permission', function( done ) {
+			request.get( '/v1/characters/1' )
+			.query({ token: 'vst' })
+			.expect( 200, done );
+		});
+
+		it( 'works if getting NPC with permission', function( done ) {
+			request.get( '/v1/characters/2' )
+			.query({ token: 'dst' })
+			.expect( 200, done );
+		});
+
+		it( 'works if getting NPC with venue permission', function( done ) {
+			request.get( '/v1/characters/2' )
+			.query({ token: 'anst' })
+			.expect( 200, done );
+		});
+
+		it( 'returns the correct data', function( done ) {
+			request.get( '/v1/characters/1' )
+			.query({ token: 'nst' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					done( err );
+				}
+				resp.body.should.have.properties({
+					id: 1,
+					userid: 1,
+					orgunit: 4,
+					name: 'Lark Perzy Winslow Pellettieri McPhee',
+					type: 'PC',
+					venue: 'cam-anarch'
+				});
+				done();
+			});
+		});
 	});
 
 	describe( 'PATCH /{id}', function() {

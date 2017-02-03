@@ -8,12 +8,12 @@ const responses = {
 	'/user/me': {
 		'user1': { id: 1 },
 		'user2': { id: 2 },
-		'default': { id: 3 },
+		'default': { id: 10 },
 		'invalid': false
 	},
 	'/office/me': {
 		'nst': [{ parentOrgID: 1, roles: [ 'character_edit', 'character_tag_edit', 'character_tag_delete', 'npc_view', 'character_view' ] }],
-		'anst': [{ parentOrgID: 1, roles: [ 'character_edit_space', 'character_tag_edit_space', 'character_tag_delete_space', 'npc_view_space' ] }],
+		'anst': [{ parentOrgID: 1, roles: [ 'character_edit_space', 'character_tag_edit_space', 'character_tag_delete_space', 'npc_view_space', 'character_view_space' ] }],
 		'dst': [{ parentOrgID: 3, roles: [ 'character_edit', 'character_view', 'npc_view' ] }],
 		'adst': [{ parentOrgID: 3, roles: [ 'character_view' ] }],
 		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch', 'npc_update_cam-anarch', 'character_view_cam-anarch' ] }],

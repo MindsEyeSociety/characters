@@ -99,9 +99,9 @@ module.exports = function() {
 		});
 	});
 
-	const insert = method => function() {
+	describe( 'POST /', function() {
 
-		helpers.defaultTests( '/v1/tags', method );
+		helpers.defaultTests( '/v1/tags', 'post' );
 
 		afterEach( 'resets test data', function( done ) {
 			Promise.join(
@@ -112,14 +112,14 @@ module.exports = function() {
 		});
 
 		it( 'fails for creating without correct permission', function( done ) {
-			request[ method ]( '/v1/tags' )
+			request.post( '/v1/tags' )
 			.query({ token: 'dst' })
 			.send({ venue: 'cam-anarch', type: 'PC', name: 'Test' })
 			.expect( 403, done );
 		});
 
 		it( 'works for creating with correct permission', function( done ) {
-			request[ method ]( '/v1/tags' )
+			request.post( '/v1/tags' )
 			.query({ token: 'nst' })
 			.send({ venue: 'cam-anarch', type: 'PC', name: 'Test' })
 			.expect( 200 )
@@ -136,36 +136,22 @@ module.exports = function() {
 			});
 		});
 
-		it( 'works for updating with correct permission', function( done ) {
-			request[ method ]( '/v1/tags' )
+		it( 'fails for updating with correct permission', function( done ) {
+			request.post( '/v1/tags' )
 			.query({ token: 'nst' })
 			.send({ id: 1, venue: 'cam-anarch', name: 'Test' })
-			.expect( 'post' !== method ? 200 : 500 )
-			.end( err => {
-				if ( err ) {
-					done( err );
-				}
-				if ( 'post' === method ) {
-					return done();
-				}
-				Tag.findById( 1 )
-				.then( tag => {
-					tag.should.have.property( 'name', 'Test' );
-					tag.should.have.property( 'id', 1 );
-					done();
-				});
-			});
+			.expect( 500, done() );
 		});
 
 		it( 'fails for creating without correct venue permission', function( done ) {
-			request[ method ]( '/v1/tags' )
+			request.post( '/v1/tags' )
 			.query({ token: 'anst' })
 			.send({ venue: 'cam-anarch', type: 'PC', name: 'Test' })
 			.expect( 403, done );
 		});
 
 		it( 'works for creating with correct venue permission', function( done ) {
-			request[ method ]( '/v1/tags' )
+			request.post( '/v1/tags' )
 			.query({ token: 'anst' })
 			.send({ venue: 'space', type: 'PC', name: 'Test' })
 			.expect( 200 )
@@ -181,9 +167,7 @@ module.exports = function() {
 				});
 			});
 		});
-	};
-
-	describe( 'POST /', insert( 'post' ) );
+	});
 
 	describe( 'GET /{id}', function() {
 		helpers.defaultTests( '/v1/tags/1' );

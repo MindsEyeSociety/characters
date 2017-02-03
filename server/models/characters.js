@@ -11,7 +11,7 @@ module.exports = function( Character ) {
 	Character.beforeRemote( 'findOne', restrictBefore );
 	Character.beforeRemote( 'count', restrictBefore );
 
-	Character.afterRemote( 'findById', restrictAfter );
+	Character.afterRemote( 'findById', restrictFind );
 
 	// Validates creation of new objects.
 	Character.beforeRemote( 'create', ( ctx, instance, next ) => {
@@ -48,11 +48,14 @@ module.exports = function( Character ) {
 
 	Character.extraPerms = ( perms, token, ctx ) => {
 
-		if (
-			-1 !== perms.indexOf( '$self' ) &&
-			token.id === _.get( ctx, 'args.data.userid' )
-		) {
-			return true;
+		if ( -1 !== perms.indexOf( '$self' ) ) {
+			let method = ctx.method.name;
+			if (
+				'findById' === method ||
+				token.id === _.get( ctx, 'args.data.userid' )
+			) {
+				return true;
+			}
 		}
 		return false
 	}
@@ -99,14 +102,7 @@ function restrictBefore( ctx, instance, next ) {
 	}
 
 	// Parses the query to get the type.
-	let type = _.get( ctx.args, 'filter.where.type' );
-	if ( ! type ) {
-		let ands = _.get( ctx.args, 'filter.where.and', {} );
-		let typeObj = _.find( ands, 'type' );
-		if ( typeObj ) {
-			type = typeObj.type;
-		}
-	}
+	let type = queries.findWhere( ctx, 'type' );
 
 	if ( ! type ) {
 		// Default to showing PCs.
@@ -132,7 +128,7 @@ function restrictBefore( ctx, instance, next ) {
 		return next( AuthError() );
 	}
 
-	getTree( ctx.req.accessToken )
+	getTree( ctx.req.accessToken.units )
 	.then( ids => {
 		if ( true === ids ) {
 			return; // National has zero restrictions.
@@ -154,30 +150,59 @@ function restrictBefore( ctx, instance, next ) {
  * @param {Function} next     Callback.
  * @return {void}
  */
-function restrictAfter( ctx, instance, next ) {
-	if ( null === ctx.result || 'PC' === ctx.result.type ) {
+function restrictFind( ctx, instance, next ) {
+	if ( null === ctx.result ) {
 		return next();
 	}
 
-	let Character = ctx.method.ctor;
-	let hasPermission = Character.checkPerms( 'npc_view', ctx.req.accessToken, ctx );
-
-	if ( ! hasPermission ) {
-		next( AuthError() );
-	} else {
-		next();
+	// Check if the user is getting their own character.
+	if ( _.get( ctx.result, 'userid' ) === ctx.req.accessToken.id ) {
+		return next();
 	}
+
+	// Iterate through permissions again now that we have the venue.
+	let perm = 'PC' === ctx.result.type ? 'character_view' : 'npc_view';
+	let permCtx = _.set( {}, 'args.data.venue', ctx.result.venue );
+
+	let perms = ctx.method.ctor.normalizePerms( perm, permCtx );
+
+	let units = [];
+	let offices = ctx.args.options.offices;
+	for ( let office in offices ) {
+		if ( _.intersection( offices[ office ], perms ).length ) {
+			units.push( parseInt( office ) );
+		}
+	}
+
+	if ( ! units.length ) {
+		return next( AuthError() );
+	}
+
+	// National wins here.
+	if ( -1 !== units.indexOf( 1 ) ) {
+		return next();
+	}
+
+	let id = _.get( ctx.result, 'orgunit', 1 );
+
+	getTree( units )
+	.then( ids => {
+		if ( -1 !== ids.indexOf( id ) ) {
+			return next();
+		}
+		return next( AuthError() );
+	});
 }
 
 /**
  * Gets an array of valid org units under a given office.
- * @param {Object} token The user token object.
+ * @param {Array} units Array of valid units to check.
  * @return {Array}
  */
-function getTree( token ) {
+function getTree( units ) {
 
 	// Exit if it's a National officer.
-	if ( -1 !== token.units.indexOf( 1 ) ) {
+	if ( -1 !== units.indexOf( 1 ) ) {
 		return Promise.resolve( true );
 	}
 
@@ -198,6 +223,6 @@ function getTree( token ) {
 	const gatherTree = tree => [ tree.id ].concat( tree.children.map( gatherTree ) );
 
 	return cache.get( 'org-tree' )
-	.then( tree => token.units.map( unit => iterateTree( tree, unit ) ) )
+	.then( tree => units.map( unit => iterateTree( tree, unit ) ) )
 	.then( tree => _.flattenDeep( tree ) );
 }

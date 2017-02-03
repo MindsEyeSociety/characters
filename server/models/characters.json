@@ -31,7 +31,6 @@
 		},
 		"userid": {
 			"type": "Number",
-			"required": true,
 			"index": true,
 			"length": null,
 			"precision": 10,
@@ -149,6 +148,7 @@
 	"acls": {
 		"READ": [ "character_view", "npc_view" ],
 		"WRITE": [ "character_edit", "npc_edit" ],
+		"findById": [ "character_view", "npc_view", "$self" ],
 		"create": [ "character_edit", "npc_edit", "$self" ],
 		"me": "*"
 	},

@@ -30,7 +30,6 @@ promises.push( seed( 'Characters', [
 	},
 	{
 		'id': 2,
-		'userid': 2,
 		'orgunit': 4,
 		'name': 'Messingw',
 		'type': 'NPC',
@@ -38,7 +37,7 @@ promises.push( seed( 'Characters', [
 	},
 	{
 		'id': 3,
-		'userid': 1,
+		'userid': 3,
 		'orgunit': 2,
 		'name': 'Codes with Fury',
 		'type': 'PC',
