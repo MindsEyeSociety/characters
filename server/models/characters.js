@@ -13,27 +13,15 @@ module.exports = function( Character ) {
 
 	Character.afterRemote( 'findById', restrictAfter );
 
-	Character.beforeRemote( 'create', restrictUpdateBefore );
-	Character.beforeRemote( 'upsert', restrictUpdateBefore );
-
-	Character.me = ( filter = {}, options, cb ) => {
-		_.set( filter, 'where.userid', options.currentUserId );
-		_.set( filter, 'where.type', 'PC' );
-		Character.find( filter, cb );
-	};
-
-	Character.remoteMethod(
-		'me', {
-			http: { path: '/me', verb: 'get' },
-			description: 'Returns array of characters of current user.',
-			accessType: 'READ',
-			accepts: [
-				{ arg: 'filter', type: 'object', description: 'Filter defining fields, where, include, order, offset, and limit' },
-				{ arg: 'options', type: 'object', http: 'optionsFromRequest' }
-			],
-			returns: { arg: 'data', type: [ Character.modelName ], root: true }
+	// Validates creation of new objects.
+	Character.beforeRemote( 'create', ( ctx, instance, next ) => {
+		if ( _.has( ctx.args.data, 'id' ) ) {
+			return next( RequestError( 'Cannot update model' ) );
+		} else if ( 'NPC' === ctx.args.data.type && ctx.args.data.userid ) {
+			return next( RequestError( 'NPCs cannot have users' ) );
 		}
-	);
+		next();
+	});
 
 	/**
 	 * Sets up validation.
@@ -56,6 +44,45 @@ module.exports = function( Character ) {
 	Character.disableRemoteMethodByName( 'prototype.__delete__textSheets' );
 	Character.disableRemoteMethodByName( 'prototype.__destroyById__textSheets' );
 	Character.disableRemoteMethodByName( 'prototype.__updateById__textSheets' );
+
+
+	Character.extraPerms = ( perms, token, ctx ) => {
+
+		if (
+			-1 !== perms.indexOf( '$self' ) &&
+			token.id === _.get( ctx, 'args.data.userid' )
+		) {
+			return true;
+		}
+		return false
+	}
+
+
+	/**
+	 * Gets user's own characters.
+	 * @param {Object}   [filter={}] Filters.
+	 * @param {Object}   options     Options object. Not used.
+	 * @param {Function} cb          Callback.
+	 * @return {void}
+	 */
+	Character.me = ( filter = {}, options, cb ) => {
+		_.set( filter, 'where.userid', options.currentUserId );
+		_.set( filter, 'where.type', 'PC' );
+		Character.find( filter, cb );
+	};
+
+	Character.remoteMethod(
+		'me', {
+			http: { path: '/me', verb: 'get' },
+			description: 'Returns array of characters of current user.',
+			accessType: 'READ',
+			accepts: [
+				{ arg: 'filter', type: 'object', description: 'Filter defining fields, where, include, order, offset, and limit' },
+				{ arg: 'options', type: 'object', http: 'optionsFromRequest' }
+			],
+			returns: { arg: 'data', type: [ Character.modelName ], root: true }
+		}
+	);
 };
 
 /**
@@ -101,13 +128,11 @@ function restrictBefore( ctx, instance, next ) {
 	let Character = ctx.method.ctor;
 	let hasPermission = Character.checkPerms( perms, ctx.req.accessToken, ctx );
 
-	console.log( perms );
-
 	if ( ! hasPermission ) {
 		return next( AuthError() );
 	}
 
-	Character.getTree( ctx.req.accessToken )
+	getTree( ctx.req.accessToken )
 	.then( ids => {
 		if ( true === ids ) {
 			return; // National has zero restrictions.
@@ -117,23 +142,9 @@ function restrictBefore( ctx, instance, next ) {
 		queries.addWhere( ctx, { orgunit: { inq: ids } } );
 
 	}).then( () => {
-		restoreWhere( ctx.args );
+		queries.restoreWhere( ctx.args );
 		next();
 	});
-}
-
-/**
- * Restores the default where query. For counts.
- * @param {Object} args Argument object.
- * @return {void}
- */
-function restoreWhere( args ) {
-	if ( ! _.has( args, 'where' ) ) {
-		return;
-	}
-
-	args.where = args.filter.where;
-	delete args.filter;
 }
 
 /**
@@ -148,8 +159,8 @@ function restrictAfter( ctx, instance, next ) {
 		return next();
 	}
 
-	let Tag = ctx.method.ctor;
-	let hasPermission = Tag.checkPerms( 'npc_view', ctx.req.accessToken, ctx );
+	let Character = ctx.method.ctor;
+	let hasPermission = Character.checkPerms( 'npc_view', ctx.req.accessToken, ctx );
 
 	if ( ! hasPermission ) {
 		next( AuthError() );
@@ -158,19 +169,35 @@ function restrictAfter( ctx, instance, next ) {
 	}
 }
 
-
 /**
- * Restricts before an update query takes place.
- * @param {Object}   ctx      Loopback context object.
- * @param {Object}   instance The instance object.
- * @param {Function} next     Callback.
- * @return {void}
+ * Gets an array of valid org units under a given office.
+ * @param {Object} token The user token object.
+ * @return {Array}
  */
-function restrictUpdateBefore( ctx, instance, next ) {
-	let perms = _.get( ctx.req.accessToken, 'offices.1' );
+function getTree( token ) {
 
-	if ( ! perms || ! 'character_tag_edit' in perms ) {
-		return next( AuthError() );
+	// Exit if it's a National officer.
+	if ( -1 !== token.units.indexOf( 1 ) ) {
+		return Promise.resolve( true );
 	}
-	next();
+
+	const cache = require( '../helpers/cache' ).async;
+
+	const iterateTree = ( tree, id ) => {
+		if ( tree.id === id ) {
+			return gatherTree( tree );
+		}
+		for ( let child of tree.children ) {
+			let result = iterateTree( child, id );
+			if ( result ) {
+				return result;
+			}
+		}
+	};
+
+	const gatherTree = tree => [ tree.id ].concat( tree.children.map( gatherTree ) );
+
+	return cache.get( 'org-tree' )
+	.then( tree => token.units.map( unit => iterateTree( tree, unit ) ) )
+	.then( tree => _.flattenDeep( tree ) );
 }

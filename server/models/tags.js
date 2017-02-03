@@ -3,8 +3,15 @@ const _ = require( 'lodash' );
 const AuthError = require( '../helpers/errors' ).AuthError;
 const RequestError = require( '../helpers/errors' ).RequestError;
 const venues = _.map( require( '../fixtures/venues' ), 'id' );
+const restoreWhere = require( '../helpers/queries' ).restoreWhere;
 
 module.exports = function( Tag ) {
+
+	/**
+	 * Sets up validation.
+	 */
+	Tag.validatesInclusionOf( 'type', { in: [ 'NPC', 'PC' ] } );
+	Tag.validatesInclusionOf( 'venue', { in: venues } );
 
 	/**
 	 * Sets up permissions.
@@ -18,69 +25,7 @@ module.exports = function( Tag ) {
 	Tag.beforeRemote( 'create', restrictUpdateBefore );
 	Tag.beforeRemote( 'upsert', restrictUpdateBefore );
 
-	Tag.observe( 'before save', ( ctx, next ) => {
-		if ( Tag.bypassPerms ) {
-			Tag.bypassPerms = false;
-			return next();
-		}
-
-		let perms = [ 'character_tag_edit' ];
-		let venue;
-
-		if ( ctx.isNewInstance && ctx.instance.venue ) {
-			venue = ctx.instance.venue;
-		} else if ( ctx.currentInstance ) {
-			venue = ctx.currentInstance.venue;
-		} else if ( ctx.instance ) {
-			venue = ctx.instance.venue;
-		}
-
-		if ( venue ) {
-			perms.push( `character_tag_edit_${venue}` );
-		}
-
-		let hasPermission = Tag.checkPerms(
-			perms,
-			{ offices: _.get( ctx.options, 'offices' ) }
-		);
-
-		if ( ! hasPermission ) {
-			next( AuthError() );
-		} else {
-			next();
-		}
-	});
-
-	Tag.observe( 'before delete', ( ctx, next ) => {
-		if ( Tag.bypassPerms ) {
-			Tag.bypassPerms = false;
-			return next();
-		}
-
-		let offices = { offices: _.get( ctx.options, 'offices' ) };
-
-		if ( Tag.checkPerms( 'character_tag_delete', offices ) ) {
-			return next();
-		}
-
-		if ( ! ctx.where.id ) {
-			return next( AuthError() );
-		}
-
-		Tag.findById( ctx.where.id )
-		.then( tag => {
-			if ( Tag.checkPerms( 'character_tag_delete_' + tag.venue, offices ) ) {
-				return next();
-			}
-			return next( AuthError() );
-		});
-	});
-
-	/**
-	 * Sets up validation.
-	 */
-	Tag.validatesInclusionOf( 'type', { in: [ 'NPC', 'PC' ] } );
-	Tag.validatesInclusionOf( 'venue', { in: venues } );
+	Tag.beforeRemote( 'deleteById', restrictDelete );
 
 	/**
 	 * Removes related modification endpoints.
@@ -93,15 +38,6 @@ module.exports = function( Tag ) {
 	Tag.disableRemoteMethodByName( 'prototype.__link__characters' );
 	Tag.disableRemoteMethodByName( 'prototype.__exists__characters' );
 	Tag.disableRemoteMethodByName( 'prototype.__unlink__characters' );
-
-	/**
-	 * Sets up a way to completely bypass permissions.
-	 * @return {Tag}
-	 */
-	Tag.bypass = function() {
-		Tag.bypassPerms = true;
-		return Tag;
-	}
 };
 
 /**
@@ -145,14 +81,6 @@ function restrictBefore( ctx, instance, next ) {
 	}
 }
 
-function restoreWhere( args ) {
-	if ( ! _.has( args, 'where' ) ) {
-		return;
-	}
-
-	args.where = args.filter.where;
-	delete args.filter;
-}
 
 /**
  * Restricts after a query takes place. Used when there's an ID.
@@ -191,4 +119,37 @@ function restrictUpdateBefore( ctx, instance, next ) {
 		return next( AuthError() );
 	}
 	next();
+}
+
+
+/**
+ * Restricts before a delete query takes place.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictDelete( ctx, instance, next ) {
+	let perms = _.chain( ctx.args.options.offices ).values().flatten().uniq().value();
+
+	for ( let perm of perms ) {
+		if ( 'character_tag_delete' === perm || 'admin' === perm ) {
+			return next();
+		}
+	}
+
+	if ( ! ctx.args.id ) {
+		return next( AuthError() );
+	}
+
+	let Tag = ctx.method.ctor;
+	Tag.findById( ctx.args.id )
+	.then( tag => {
+		for ( let perm of perms ) {
+			if ( `character_tag_delete_${tag.venue}` === perm ) {
+				return next();
+			}
+		}
+		return next( AuthError() );
+	});
 }

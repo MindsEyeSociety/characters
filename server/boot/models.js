@@ -8,6 +8,7 @@ module.exports = function( app ) {
 	let names  = Object.keys( models );
 	names.forEach( name => {
 		let model = models[ name ];
+		model.disableRemoteMethodByName( 'patchOrCreate' );
 		model.disableRemoteMethodByName( 'upsertWithWhere' );
 		model.disableRemoteMethodByName( 'createChangeStream' );
 		model.disableRemoteMethodByName( 'updateAll' );

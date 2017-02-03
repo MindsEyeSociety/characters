@@ -224,7 +224,7 @@ module.exports = function() {
 			.expect( 403, done );
 		});
 
-		it.only( 'works for NPCs with venue role and filter', function( done ) {
+		it( 'works for NPCs with venue role and filter', function( done ) {
 			request.get( '/v1/characters' )
 			.query({ token: 'vst' })
 			.query({ filter: '{"where":{"and":[{"venue":"cam-anarch"},{"type":"NPC"}]}}' })
@@ -233,11 +233,113 @@ module.exports = function() {
 	});
 
 	describe( 'POST /', function() {
-		helpers.defaultTests( '/v1/characters', 'post' );
-	});
 
-	describe( 'PATCH /', function() {
-		helpers.defaultTests( '/v1/characters', 'patch' );
+		helpers.defaultTests( '/v1/characters', 'post' );
+
+		afterEach( 'resets test data', function( done ) {
+			Promise.join(
+				Character.bypass().destroyAll({ id: { gt: 3 } }),
+				Character.bypass().replaceById( 1, {
+					'userid': 1,
+					'orgunit': 4,
+					'name': 'Lark Perzy Winslow Pellettieri McPhee',
+					'type': 'PC',
+					'venue': 'cam-anarch'
+				}),
+				() => done()
+			).catch( err => done( err ) );
+		});
+
+		const newChar = {
+			userid: 10,
+			orgunit: 4,
+			name: 'Test',
+			type: 'PC',
+			venue: 'cam-anarch'
+		};
+
+		it( 'fails for creating without correct permission', function( done ) {
+			request.post( '/v1/characters' )
+			.query({ token: 'adst' })
+			.send( newChar )
+			.expect( 403, done );
+		});
+
+		it( 'works for creating PC for self', function( done ) {
+			let char = Object.assign( {}, newChar );
+			char.userid = 1;
+
+			request.post( '/v1/characters' )
+			.query({ token: 'user1' })
+			.send( char )
+			.expect( 200, done );
+		});
+
+		it( 'fails for creating NPC for self', function( done ) {
+			let char = Object.assign( {}, newChar );
+			char.userid = 1;
+			char.type = 'NPC';
+
+			request.post( '/v1/characters' )
+			.query({ token: 'user1' })
+			.send( char )
+			.expect( 400, done );
+		});
+
+		it( 'works for creating with correct permission', function( done ) {
+			request.post( '/v1/characters' )
+			.query({ token: 'nst' })
+			.send( newChar )
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					done( err );
+				}
+				resp.body.should.have.property( 'id' );
+				done();
+			});
+		});
+
+		it( 'fails for creating without attributes', function( done ) {
+			request.post( '/v1/characters' )
+			.query({ token: 'nst' })
+			.send({})
+			.expect( 422, done );
+		});
+
+		it( 'fails for updating with correct permission', function( done ) {
+			let char = Object.assign( {}, newChar );
+			char.id = 1;
+
+			request.post( '/v1/characters' )
+			.query({ token: 'nst' })
+			.send( char )
+			.expect( 400, done );
+		});
+
+		it( 'fails for creating without correct venue permission', function( done ) {
+			request.post( '/v1/characters' )
+			.query({ token: 'anst' })
+			.send( newChar )
+			.expect( 403, done );
+		});
+
+		it( 'works for creating with correct venue permission', function( done ) {
+			let char = Object.assign( {}, newChar );
+			char.venue = 'space';
+
+			request.post( '/v1/characters' )
+			.query({ token: 'anst' })
+			.send( char )
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					done( err );
+				}
+				resp.body.should.have.property( 'id' );
+				done();
+			});
+		});
 	});
 
 	describe( 'GET /{id}', function() {
@@ -260,12 +362,12 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1/exists' );
 	});
 
-	describe( 'GET /{id}/tags', function() {
-		helpers.defaultTests( '/v1/characters/1/tags' );
+	describe( 'GET /{id}/characters', function() {
+		helpers.defaultTests( '/v1/characters/1/characters' );
 	});
 
-	describe( 'GET /{id}/tags/count', function() {
-		helpers.defaultTests( '/v1/characters/1/tags/count' );
+	describe( 'GET /{id}/characters/count', function() {
+		helpers.defaultTests( '/v1/characters/1/characters/count' );
 	});
 
 	describe( 'GET /{id}/textSheets', function() {
@@ -298,15 +400,16 @@ module.exports = function() {
 
 	describe( 'Verify disabled endpoints', function() {
 		let endpoints = [
+			[ 'patch', '/' ],
 			[ 'put', '/1' ],
-			[ 'post', '/1/tags' ],
-			[ 'delete', '/1/tags' ],
-			[ 'get', '/1/tags/1' ],
-			[ 'put', '/1/tags/1' ],
-			[ 'delete', '/1/tags/1' ],
-			[ 'head', '/1/tags/rel/1' ],
-			[ 'put', '/1/tags/rel/1' ],
-			[ 'delete', '/1/tags/rel/1' ],
+			[ 'post', '/1/characters' ],
+			[ 'delete', '/1/characters' ],
+			[ 'get', '/1/characters/1' ],
+			[ 'put', '/1/characters/1' ],
+			[ 'delete', '/1/characters/1' ],
+			[ 'head', '/1/characters/rel/1' ],
+			[ 'put', '/1/characters/rel/1' ],
+			[ 'delete', '/1/characters/rel/1' ],
 			[ 'post', '/1/replace' ],
 			[ 'get', '/change-stream' ],
 			[ 'post', '/change-stream' ],

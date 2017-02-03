@@ -1,6 +1,6 @@
 {
 	"name": "Characters",
-	"base": "Core",
+	"base": "PersistedModel",
 	"options": {
 		"idInjection": false,
 		"forceId": false,
@@ -8,6 +8,9 @@
 			"schema": "characters",
 			"table": "characters"
 		}
+	},
+	"mixins": {
+		"Perms": {}
 	},
 	"properties": {
 		"name": {
@@ -145,10 +148,8 @@
 	},
 	"acls": {
 		"READ": [ "character_view", "npc_view" ],
-		"WRITE": [ "character_update", "npc_update" ],
-		"deleteById": [ "character_delete", "npc_delete" ],
-		"destroyById": [ "character_delete", "npc_delete" ],
-		"removeById": [ "character_delete", "npc_delete" ],
+		"WRITE": [ "character_edit", "npc_edit" ],
+		"create": [ "character_edit", "npc_edit", "$self" ],
 		"me": "*"
 	},
 	"methods": {}

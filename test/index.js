@@ -6,6 +6,6 @@ before( 'seed', function( done ) {
 	require( '../bin/seed' )( done );
 });
 
-describe( 'Tags', require( './tags' ) );
-
 describe( 'Characters', require( './characters' ) );
+
+describe( 'Tags', require( './tags' ) );

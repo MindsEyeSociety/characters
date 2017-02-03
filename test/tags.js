@@ -183,7 +183,6 @@ module.exports = function() {
 		});
 	};
 
-	describe( 'PATCH /', insert( 'patch' ) );
 	describe( 'POST /', insert( 'post' ) );
 
 	describe( 'GET /{id}', function() {
@@ -335,25 +334,25 @@ module.exports = function() {
 			.catch( err => done( err ) );
 		});
 
-		it( 'fails for updating without correct permission', function( done ) {
+		it( 'fails for deleting without correct permission', function( done ) {
 			request.delete( '/v1/tags/1' )
 			.query({ token: 'dst' })
 			.expect( 403, done );
 		});
 
-		it( 'works for updating with correct permission', function( done ) {
+		it( 'works for deleting with correct permission', function( done ) {
 			request.delete( '/v1/tags/1' )
 			.query({ token: 'nst' })
 			.expect( 200, done );
 		});
 
-		it( 'fails for updating without correct venue permission', function( done ) {
+		it( 'fails for deleting without correct venue permission', function( done ) {
 			request.delete( '/v1/tags/1' )
 			.query({ token: 'anst' })
 			.expect( 403, done );
 		});
 
-		it( 'works for updating with correct venue permission', function( done ) {
+		it( 'works for deleting with correct venue permission', function( done ) {
 			request.delete( '/v1/tags/4' )
 			.query({ token: 'anst' })
 			.expect( 200, done );
@@ -592,6 +591,7 @@ module.exports = function() {
 
 	describe( 'Verify disabled endpoints', function() {
 		let endpoints = [
+			[ 'patch', '/' ],
 			[ 'put', '/1' ],
 			[ 'post', '/1/characters' ],
 			[ 'delete', '/1/characters' ],

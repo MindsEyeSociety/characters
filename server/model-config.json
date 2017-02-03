@@ -7,10 +7,6 @@
 			"./mixins"
 		]
 	},
-	"Core": {
-		"dataSource": null,
-		"public": false
-	},
 	"Characters": {
 		"dataSource": "mysql",
 		"public": true

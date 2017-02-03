@@ -1,15 +1,16 @@
+'use strict';
+
 const _ = require( 'lodash' );
 
-const venues = _.map( require( '../fixtures/venues' ), 'id' );
+const findWhere = require( '../helpers/queries' ).findWhere;
 
-module.exports = function( Core ) {
-
+module.exports = function( Model ) {
 	/**
 	 * Adds the user data to the remote context.
 	 * @param {Object} ctx The remote invocation context.
 	 * @return {Object}
 	 */
-	Core.createOptionsFromRemotingContext = ctx => {
+	Model.createOptionsFromRemotingContext = ctx => {
 
 		if ( ! _.get( ctx, 'req.accessToken.id' ) ) {
 			return {};
@@ -35,7 +36,7 @@ module.exports = function( Core ) {
 	 * @param {String|Error} err The error object.
 	 * @param {Boolean} allowed True if the request is allowed; false otherwise.
 	 */
-	Core.checkAccess = ( token, modelId, sharedMethod, ctx, callback ) => {
+	Model.checkAccess = ( token, modelId, sharedMethod, ctx, callback ) => {
 
 		// Exit if we don't have a token.
 		if ( ! token ) {
@@ -43,51 +44,15 @@ module.exports = function( Core ) {
 		}
 
 		let acls = _.get( sharedMethod, 'ctor.settings.acls', {} );
-
-		Core.looseCheck = true;
 		let perm = false;
 
 		if ( acls[ sharedMethod.name ] ) {
-			perm = Core.checkPerms( acls[ sharedMethod.name ], token, ctx );
+			perm = Model.checkPerms( acls[ sharedMethod.name ], token, ctx );
 		} else if ( acls[ sharedMethod.accessType ] ) {
-			perm = Core.checkPerms( acls[ sharedMethod.accessType ], token, ctx );
+			perm = Model.checkPerms( acls[ sharedMethod.accessType ], token, ctx );
 		}
 
-		Core.looseCheck = false;
 		callback( null, perm );
-	};
-
-	/**
-	 * Gets an array of valid org units under a given office.
-	 * @param {Object} token The user token object.
-	 * @return {Array}
-	 */
-	Core.getTree = token => {
-
-		// Exit if it's a National officer.
-		if ( -1 !== token.units.indexOf( 1 ) ) {
-			return Promise.resolve( true );
-		}
-
-		const cache = require( '../helpers/cache' ).async;
-
-		const iterateTree = ( tree, id ) => {
-			if ( tree.id === id ) {
-				return gatherTree( tree );
-			}
-			for ( let child of tree.children ) {
-				let result = iterateTree( child, id );
-				if ( result ) {
-					return result;
-				}
-			}
-		};
-
-		const gatherTree = tree => [ tree.id ].concat( tree.children.map( gatherTree ) );
-
-		return cache.get( 'org-tree' )
-		.then( tree => token.units.map( unit => iterateTree( tree, unit ) ) )
-		.then( tree => _.flattenDeep( tree ) );
 	};
 
 
@@ -98,14 +63,21 @@ module.exports = function( Core ) {
 	 * @param {Object}       ctx   Context object.
 	 * @return {boolean}
 	 */
-	Core.checkPerms = ( perms, token, ctx ) => {
+	Model.checkPerms = ( perms, token, ctx ) => {
+		// Universal bypass.
 		if ( '*' === perms ) {
 			return true;
 		}
 
-		perms = Core.normalizePerms( perms, ctx );
+		// Adds hook for models to do additional checks.
+		if (
+			'function' === typeof Model.extraPerms &&
+			Model.extraPerms( perms, token, ctx )
+		) {
+			return true;
+		}
 
-		Core.looseCheck = false;
+		perms = Model.normalizePerms( perms, ctx );
 
 		let units = [];
 		for ( let office in token.offices ) {
@@ -126,27 +98,35 @@ module.exports = function( Core ) {
 	 * @param {Object}       ctx   Context object.
 	 * @return {Array}
 	 */
-	Core.normalizePerms = ( perms, ctx = {} ) => {
+	Model.normalizePerms = ( perms, ctx = {} ) => {
 		if ( _.isString( perms ) ) {
 			perms = [ perms ];
 		}
 
 		let newPerms = [];
-		if ( Core.looseCheck ) {
+		let venue = _.get( ctx, 'args.data.venue', findWhere( ctx, 'venue' ) );
+		if ( venue ) {
+			perms.forEach( perm => {
+				newPerms.push( `${perm}_${venue}` );
+			});
+		} else if ( 'deleteById' === ctx.method.name ) {
+			let venues = _.map( require( '../fixtures/venues' ), 'id' );
 			perms.forEach( perm => {
 				venues.forEach( venue => {
 					newPerms.push( `${perm}_${venue}` );
 				});
 			});
-		} else {
-			let venue = _.get( ctx.args, 'filter.where.venue', false );
-			if ( venue ) {
-				perms.forEach( perm => {
-					newPerms.push( `${perm}_${venue}` );
-				});
-			}
 		}
 
 		return _.concat( perms, newPerms, 'admin' );
 	}
-};
+
+	/**
+	 * Sets up a way to completely bypass permissions.
+	 * @return {Model}
+	 */
+	Model.bypass = function() {
+		Model.bypassPerms = true;
+		return Model;
+	}
+}
