@@ -48,23 +48,28 @@ promises.push( seed( 'Characters', [
 
 promises.push( seed( 'Tags', [
 	{
+		'id': 1,
 		'name': 'Toreador',
 		'venue': 'cam-anarch'
 	},
 	{
+		'id': 2,
 		'name': 'Camarilla',
 		'venue': 'cam-anarch'
 	},
 	{
+		'id': 3,
 		'name': 'Neonate',
 		'venue': 'cam-anarch'
 	},
 	{
+		'id': 4,
 		'name': 'Actor',
 		'venue': 'space',
 		'type': 'NPC'
 	},
 	{
+		'id': 5,
 		'name': 'Mage',
 		'venue': 'cam-anarch',
 		'type': 'NPC'

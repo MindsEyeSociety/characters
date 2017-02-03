@@ -421,6 +421,8 @@ module.exports = function() {
 					type: 'PC',
 					venue: 'cam-anarch'
 				});
+				resp.body.tags.should.be.an.Array();
+				resp.body.textSheets.should.be.an.Array().and.length( 1 );
 				done();
 			});
 		});

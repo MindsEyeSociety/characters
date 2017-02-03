@@ -131,7 +131,6 @@
 			}
 		}
 	},
-	"validations": [],
 	"relations": {
 		"textSheets": {
 			"type": "hasMany",
@@ -151,6 +150,5 @@
 		"findById": [ "character_view", "npc_view", "$self" ],
 		"create": [ "character_edit", "npc_edit", "$self" ],
 		"me": "*"
-	},
-	"methods": {}
+	}
 }

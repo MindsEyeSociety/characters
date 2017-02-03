@@ -23,6 +23,17 @@ module.exports = function( Character ) {
 		next();
 	});
 
+	// Sets default scope of single character.
+	Character.beforeRemote( 'findById', ( ctx, instance, next ) => {
+		if ( ! _.has( ctx.args, 'filter.include' ) ) {
+			_.set( ctx.args, 'filter.include', [
+				{ relation: 'tags' },
+				{ relation: 'textSheets', scope: { order: 'modifiedat DESC', limit: 1 } }
+			] );
+		}
+		next();
+	});
+
 	/**
 	 * Sets up validation.
 	 */
