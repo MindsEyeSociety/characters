@@ -48,9 +48,7 @@ module.exports = function( Character ) {
 	Character.disableRemoteMethodByName( 'prototype.__findById__tags' );
 	Character.disableRemoteMethodByName( 'prototype.__destroyById__tags' );
 	Character.disableRemoteMethodByName( 'prototype.__updateById__tags' );
-	Character.disableRemoteMethodByName( 'prototype.__link__tags' );
 	Character.disableRemoteMethodByName( 'prototype.__exists__tags' );
-	Character.disableRemoteMethodByName( 'prototype.__unlink__tags' );
 
 	Character.disableRemoteMethodByName( 'prototype.__delete__textSheets' );
 	Character.disableRemoteMethodByName( 'prototype.__destroyById__textSheets' );
