@@ -98,6 +98,12 @@ promises.push( seed( 'TextSheets', [
 		'sheet': 'actor sheet',
 		'modifiedat': '2017-01-01 00:00:00',
 		'modifiedby': 2
+	},
+	{
+		'characterid': 3,
+		'sheet': 'another PC',
+		'modifiedat': '2017-01-01 00:00:00',
+		'modifiedby': 1
 	}
 ]) );
 
@@ -128,6 +134,5 @@ let main = module.exports = function( done ) {
 if ( require.main === module ) {
 	main( () => {
 		console.log( `Seeded ${promises.length} tables.` );
-		process.exit();
 	});
 }

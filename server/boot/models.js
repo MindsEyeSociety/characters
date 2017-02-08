@@ -12,7 +12,7 @@ module.exports = function( app ) {
 		model.disableRemoteMethodByName( 'upsertWithWhere' );
 		model.disableRemoteMethodByName( 'createChangeStream' );
 		model.disableRemoteMethodByName( 'updateAll' );
-		model.disableRemoteMethodByName( 'replaceById' );
+		model.disableRemoteMethodByName( 'prototype.patchAttributes' );
 		model.disableRemoteMethodByName( 'replaceOrCreate' );
 	});
 }

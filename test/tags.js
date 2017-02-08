@@ -243,8 +243,8 @@ module.exports = function() {
 		});
 	});
 
-	describe( 'PATCH /{id}', function() {
-		helpers.defaultTests( '/v1/tags', 'patch' );
+	describe( 'PUT /{id}', function() {
+		helpers.defaultTests( '/v1/tags', 'put' );
 
 		afterEach( 'resets test data', function( done ) {
 			Promise.join(
@@ -256,14 +256,14 @@ module.exports = function() {
 		});
 
 		it( 'fails for updating without correct permission', function( done ) {
-			request.patch( '/v1/tags/1' )
+			request.put( '/v1/tags/1' )
 			.query({ token: 'dst' })
 			.send({ venue: 'cam-anarch', name: 'Test' })
 			.expect( 403, done );
 		});
 
 		it( 'works for updating with correct permission', function( done ) {
-			request.patch( '/v1/tags/1' )
+			request.put( '/v1/tags/1' )
 			.query({ token: 'nst' })
 			.send({ venue: 'cam-anarch', name: 'Test' })
 			.expect( 200 )
@@ -281,14 +281,77 @@ module.exports = function() {
 		});
 
 		it( 'fails for updating without correct venue permission', function( done ) {
-			request.patch( '/v1/tags/1' )
+			request.put( '/v1/tags/1' )
 			.query({ token: 'anst' })
 			.send({ venue: 'cam-anarch', name: 'Test' })
 			.expect( 403, done );
 		});
 
 		it( 'works for updating with correct venue permission', function( done ) {
-			request.patch( '/v1/tags/4' )
+			request.put( '/v1/tags/4' )
+			.query({ token: 'anst' })
+			.send({ venue: 'space', name: 'Test' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					done( err );
+				}
+				resp.body.should.have.property( 'id' );
+				Tag.findById( resp.body.id )
+				.then( instance => {
+					resp.body.should.deepEqual( instance.toJSON() );
+					done();
+				});
+			});
+		});
+	});
+
+	describe( 'POST /{id}/replace', function() {
+		helpers.defaultTests( '/v1/tags', 'post' );
+
+		afterEach( 'resets test data', function( done ) {
+			Promise.join(
+				Tag.bypass().replaceById( 1, { name: 'Toreador', venue: 'cam-anarch' }),
+				Tag.bypass().replaceById( 4, { name: 'Actor', venue: 'space' }),
+				() => done()
+			)
+			.catch( err => done( err ) );
+		});
+
+		it( 'fails for updating without correct permission', function( done ) {
+			request.post( '/v1/tags/1/replace' )
+			.query({ token: 'dst' })
+			.send({ venue: 'cam-anarch', name: 'Test' })
+			.expect( 403, done );
+		});
+
+		it( 'works for updating with correct permission', function( done ) {
+			request.post( '/v1/tags/1/replace' )
+			.query({ token: 'nst' })
+			.send({ venue: 'cam-anarch', name: 'Test' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					done( err );
+				}
+				resp.body.should.have.property( 'id' );
+				Tag.findById( resp.body.id )
+				.then( instance => {
+					resp.body.should.deepEqual( instance.toJSON() );
+					done();
+				});
+			});
+		});
+
+		it( 'fails for updating without correct venue permission', function( done ) {
+			request.post( '/v1/tags/1/replace' )
+			.query({ token: 'anst' })
+			.send({ venue: 'cam-anarch', name: 'Test' })
+			.expect( 403, done );
+		});
+
+		it( 'works for updating with correct venue permission', function( done ) {
+			request.post( '/v1/tags/4/replace' )
 			.query({ token: 'anst' })
 			.send({ venue: 'space', name: 'Test' })
 			.expect( 200 )
@@ -576,7 +639,7 @@ module.exports = function() {
 	describe( 'Verify disabled endpoints', function() {
 		let endpoints = [
 			[ 'patch', '/' ],
-			[ 'put', '/1' ],
+			[ 'patch', '/1' ],
 			[ 'post', '/1/characters' ],
 			[ 'delete', '/1/characters' ],
 			[ 'get', '/1/characters/1' ],
@@ -585,7 +648,6 @@ module.exports = function() {
 			[ 'head', '/1/characters/rel/1' ],
 			[ 'put', '/1/characters/rel/1' ],
 			[ 'delete', '/1/characters/rel/1' ],
-			[ 'post', '/1/replace' ],
 			[ 'get', '/change-stream' ],
 			[ 'post', '/change-stream' ],
 			[ 'post', '/replaceOrCreate' ],

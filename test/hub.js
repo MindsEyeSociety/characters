@@ -19,6 +19,7 @@ const responses = {
 		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch', 'npc_update_cam-anarch', 'character_view_cam-anarch' ] }],
 		'avst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch' ] }],
 		'otherDst': [{ parentOrgID: 6, roles: [ 'npc_view' ] }],
+		'admin': [{ parentOrgID: 1, roles: [ 'admin' ] }],
 		'default': []
 	}
 };

@@ -33,6 +33,7 @@
 			"type": "Number",
 			"index": true,
 			"length": null,
+			"required": false,
 			"precision": 10,
 			"scale": 0,
 			"mysql": {
@@ -41,7 +42,7 @@
 				"dataLength": null,
 				"dataPrecision": 10,
 				"dataScale": 0,
-				"nullable": "N"
+				"nullable": "Y"
 			}
 		},
 		"type": {
@@ -94,7 +95,6 @@
 		},
 		"active": {
 			"type": "Boolean",
-			"required": false,
 			"index": true,
 			"default": 1
 		},
@@ -146,7 +146,7 @@
 	},
 	"acls": {
 		"READ": [ "character_view", "npc_view" ],
-		"WRITE": [ "character_edit", "npc_edit" ],
+		"WRITE": [ "character_edit", "npc_edit", "$self" ],
 		"findById": [ "character_view", "npc_view", "$self" ],
 		"create": [ "character_edit", "npc_edit", "$self" ],
 		"me": "*"

@@ -27,9 +27,17 @@ module.exports = function( Character ) {
 	Character.beforeRemote( 'findById', ( ctx, instance, next ) => {
 		if ( ! _.has( ctx.args, 'filter.include' ) ) {
 			_.set( ctx.args, 'filter.include', [
-				{ relation: 'tags' },
 				{ relation: 'textSheets', scope: { order: 'modifiedat DESC', limit: 1 } }
 			] );
+		}
+		next();
+	});
+
+	Character.beforeRemote( 'replaceById', ( ctx, instance, next ) => {
+		let data = ctx.args.data;
+
+		if ( 'PC' === data.type && ! data.userid ) {
+			return next( RequestError( 'PCs require an associated user ID' ) );
 		}
 		next();
 	});
@@ -59,14 +67,16 @@ module.exports = function( Character ) {
 
 		if ( -1 !== perms.indexOf( '$self' ) ) {
 			let method = ctx.method.name;
-			if (
+			if ( 'replaceById' === method ) {
+				return true;
+			} else if (
 				'findById' === method ||
 				token.id === _.get( ctx, 'args.data.userid' )
 			) {
 				return true;
 			}
 		}
-		return false
+		return false;
 	}
 
 
