@@ -66,9 +66,21 @@ function testPerms( url, tests, method = 'get' ) {
 				query.query({ filter: JSON.stringify({ where: test.where }) });
 			}
 
-			query.expect( test.code, done );
+			if ( ! test.debug ) {
+				query.expect( test.code, done );
+			} else {
+				query.expect( test.code )
+				.end( ( err, resp ) => {
+					console.log( resp.statusCode, resp.body );
+					done();
+				});
+			}
 		})
 	});
+}
+
+function cloneWith( obj, key, value ) {
+	return _.set( _.clone( obj ), key, value );
 }
 
 module.exports = {
@@ -76,5 +88,6 @@ module.exports = {
 	internal: supertest( 'localhost:' + app.get( 'internalPort' ) ),
 	app,
 	defaultTests,
-	testPerms
+	testPerms,
+	cloneWith
 };

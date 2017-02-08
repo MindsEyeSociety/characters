@@ -11,6 +11,7 @@ const Promise = require( 'bluebird' );
 
 const helpers = require( './helpers' );
 const request = helpers.request;
+const clone   = helpers.cloneWith;
 
 module.exports = function() {
 
@@ -333,12 +334,20 @@ module.exports = function() {
 		});
 
 		helpers.testPerms( { url: '/v1/characters/%id', verb: 'updating', method: 'put' }, [
-			// { text: 'without correct role', id: 1, body, token: 'adst' },
+			{ text: 'PC without correct role', id: 1, body, token: 'adst' },
 			{ text: 'PC for self', id: 1, body, code: 200 },
-			{ text: 'with correct role', id: 1, body, token: 'nst', code: 200 },
+			{ text: 'PC with correct role', id: 1, body, token: 'nst', code: 200 },
+			{ text: 'PC without correct venue role', id: 1, body, token: 'anst' },
+			{ text: 'PC not under org unit', id: 1, body, token: 'otherDst' },
+			{ text: 'NPC with correct role', id: 2, body: npc, token: 'nst', code: 200 },
+			{ text: 'NPC with correct venue role', id: 2, body: npc, token: 'anst', code: 200 },
 			{ text: 'without attributes', id: 1, token: 'nst', code: 422 },
-			// { text: 'without correct venue role', id: 1, body, token: 'anst' },
-			{ text: 'with correct venue role', id: 2, body: npc, token: 'anst', code: 200 },
+			{ text: 'PC without user ID', id: 1, body: clone( body, 'userid', null ), token: 'nst', code: 400 },
+			{ text: 'NPC with user ID', id: 2, body: clone( body, 'userid', 1 ), token: 'nst', code: 400 },
+			{ text: 'character type', id: 1, body: clone( body, 'type', 'NPC' ), code: 400 },
+			{ text: 'character venue', id: 1, body: clone( body, 'venue', 'space' ), code: 400 },
+			{ text: 'character user ID', id: 1, body: clone( body, 'userid', 2 ), code: 400 },
+			{ text: 'character org unit', id: 1, body: clone( body, 'orgunit', 3 ), code: 400 }
 		]);
 
 		it( 'updates the data', function( done ) {

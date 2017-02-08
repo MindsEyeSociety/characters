@@ -35,11 +35,47 @@ module.exports = function( Character ) {
 
 	Character.beforeRemote( 'replaceById', ( ctx, instance, next ) => {
 		let data = ctx.args.data;
+		let user = ctx.args.options;
+
+		if ( _.isEmpty( data ) ) {
+			return next(); // Let Loopback handler take care of this.
+		}
 
 		if ( 'PC' === data.type && ! data.userid ) {
 			return next( RequestError( 'PCs require an associated user ID' ) );
+		} else if ( 'NPC' === data.type && data.userid ) {
+			return next( RequestError( 'NPCs cannot have an associated user ID' ) );
 		}
-		next();
+
+		Character.bypass().findById( ctx.req.params.id )
+		.then( char => {
+
+			// Make sure locked data isn't changed.
+			if ( data.type !== char.type ) {
+				return next( RequestError( 'Cannot change character type' ) );
+			} else if ( data.venue !== char.venue ) {
+				return next( RequestError( 'Cannot change character venue' ) );
+			} else if ( char.userid && data.userid !== char.userid ) {
+				return next( RequestError( 'Cannot change character user ID' ) );
+			} else if ( data.orgunit !== char.orgunit ) {
+				return next( RequestError( 'Cannot change associated org unit' ) );
+			}
+
+			// Users can update their own character.
+			if ( user.currentUserId === char.userid ) {
+				return next();
+			}
+
+			let perms = 'character_edit';
+			if ( 'NPC' === char.type ) {
+				perms = 'npc_edit';
+			}
+			if ( ! Character.checkPerms( perms, ctx.req.accessToken, ctx ) ) {
+				return next( AuthError() );
+			}
+
+			next();
+		});
 	});
 
 	/**
