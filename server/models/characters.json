@@ -149,6 +149,7 @@
 		"WRITE": [ "character_edit", "npc_edit", "$self" ],
 		"findById": [ "character_view", "npc_view", "$self" ],
 		"create": [ "character_edit", "npc_edit", "$self" ],
+		"exists": "*",
 		"me": "*"
 	}
 }

@@ -423,20 +423,32 @@ module.exports = function() {
 		});
 	});
 
-	describe.skip( 'HEAD /{id}', function() {
+	describe( 'HEAD /{id}', function() {
 		helpers.defaultTests( '/v1/characters/1', 'head' );
 
-		it( 'works if a valid token is provided', function( done ) {
-			request.head( '/v1/characters/1' )
-			.query({ token: 'user1' })
-			.expect( 200, done );
-		});
+		helpers.testPerms( { url: '/v1/characters/%id', method: 'head' }, [
+			{ text: 'a valid token is provided', id: 1, code: 200 },
+			{ text: 'the character doesn\'t exist', id: 10, code: 404 }
+		]);
+	});
 
-		it( 'fails if the character doesn\'t exist', function( done ) {
-			request.head( '/v1/characters/10' )
+	describe( 'GET /{id}/exists', function() {
+		helpers.defaultTests( '/v1/characters/1/exists' );
+
+		helpers.testPerms( { url: '/v1/characters/%id/exists' }, [
+			{ text: 'a valid token is provided', id: 1, code: 200 },
+			{ text: 'the character doesn\'t exist', id: 10, code: 200 }
+		]);
+
+		it( 'provides correct data', function( done ) {
+			request.get( '/v1/characters/10/exists' )
 			.query({ token: 'user1' })
-			.expect( 404, done );
-		});
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				resp.body.should.have.property( 'exists', false );
+				done();
+			});
+		})
 	});
 
 	describe.skip( 'DELETE /{id}', function() {
@@ -509,22 +521,6 @@ module.exports = function() {
 					done();
 				})
 			});
-		});
-	});
-
-	describe.skip( 'GET /{id}/exists', function() {
-		helpers.defaultTests( '/v1/characters/1/exists' );
-
-		it( 'works if a valid token is provided', function( done ) {
-			request.get( '/v1/characters/1/exists' )
-			.query({ token: 'user1' })
-			.expect( 200, done );
-		});
-
-		it( 'fails if the character doesn\'t exist', function( done ) {
-			request.get( '/v1/characters/10/exists' )
-			.query({ token: 'user1' })
-			.expect( 404, done );
 		});
 	});
 
