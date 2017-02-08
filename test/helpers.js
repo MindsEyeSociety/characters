@@ -22,6 +22,14 @@ function defaultTests( url, method = 'get' ) {
 }
 
 function testPerms( url, tests, method = 'get' ) {
+
+	let settings = {};
+	if ( _.isPlainObject( url ) ) {
+		settings = url;
+		url = settings.url;
+		method = settings.method || method;
+	}
+
 	let request = supertest( app );
 	tests.forEach( test => {
 		_.defaults( test, {
@@ -32,6 +40,10 @@ function testPerms( url, tests, method = 'get' ) {
 		let start = 'fails if';
 		if ( 200 === test.code ) {
 			start = 'works if';
+		}
+
+		if ( settings.verb ) {
+			start += ' ' + settings.verb;
 		}
 
 		if ( test.id ) {
@@ -50,6 +62,8 @@ function testPerms( url, tests, method = 'get' ) {
 			}
 			if ( test.filter ) {
 				query.query({ filter: JSON.stringify( test.filter ) });
+			} else if ( test.where ) {
+				query.query({ filter: JSON.stringify({ where: test.where }) });
 			}
 
 			query.expect( test.code, done );

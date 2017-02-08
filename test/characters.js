@@ -23,23 +23,18 @@ module.exports = function() {
 	describe( 'GET /', function() {
 		helpers.defaultTests( '/v1/characters' );
 
-		it( 'fails if user token is provided', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'user1' })
-			.expect( 403, done );
-		});
-
-		it( 'fails if npc only token for PCs is provided', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'anst' })
-			.expect( 403, done );
-		});
-
-		it( 'works if a valid token is provided', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'nst' })
-			.expect( 200, done );
-		});
+		helpers.testPerms( { url: '/v1/characters', verb: 'getting' }, [
+			{ text: 'with user token' },
+			{ text: 'PCs with NPC roles', token: 'anst' },
+			{ text: 'with permission', token: 'nst', code: 200 },
+			{ text: 'venue NPCs without venue role', token: 'vst', where: {and:[{venue:'space'},{type:'NPC'}]} },
+			{ text: 'venue NPCs without venue filter', token: 'vst', where: {type:'NPC'} },
+			{ text: 'NPCs with venue role and filter', token: 'vst', where: {and:[{venue:'cam-anarch'},{type:'NPC'}]}, code: 200 },
+			{ text: 'PC venue role without venue', token: 'vst' },
+			{ text: 'PC venue role with venue', token: 'vst', where: { venue: 'cam-anarch' }, code: 200 },
+			{ text: 'NPCs without role', token: 'adst', where: { type: 'NPC' } },
+			{ text: 'NPCs with role', token: 'dst', where: { type: 'NPC' }, code: 200 }
+		]);
 
 		it( 'returns the correct data', function( done ) {
 			request.get( '/v1/characters' )
@@ -166,33 +161,6 @@ module.exports = function() {
 			});
 		});
 
-		it( 'fails for PC venue role without venue set', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'vst' })
-			.expect( 403, done );
-		});
-
-		it( 'works for PC venue role with venue set', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'vst' })
-			.query({ filter: '{"where":{"venue":"cam-anarch"}}' })
-			.expect( 200, done );
-		});
-
-		it( 'fails for NPCs without role', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'adst' })
-			.query({ filter: '{"where":{"type":"NPC"}}' })
-			.expect( 403, done );
-		});
-
-		it( 'works for NPCs with role', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'dst' })
-			.query({ filter: '{"where":{"type":"NPC"}}' })
-			.expect( 200, done );
-		});
-
 		it( 'only provides NPCs', function( done ) {
 			request.get( '/v1/characters' )
 			.query({ token: 'dst' })
@@ -208,27 +176,6 @@ module.exports = function() {
 				});
 				done();
 			});
-		});
-
-		it( 'fails for venue NPCs without venue role', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'vst' })
-			.query({ filter: '{"where":{"and":[{"venue":"space"},{"type":"NPC"}]}}' })
-			.expect( 403, done );
-		});
-
-		it( 'fails for venue NPCs without venue filter', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'vst' })
-			.query({ filter: '{"where":{"type":"NPC"}}' })
-			.expect( 403, done );
-		});
-
-		it( 'works for NPCs with venue role and filter', function( done ) {
-			request.get( '/v1/characters' )
-			.query({ token: 'vst' })
-			.query({ filter: '{"where":{"and":[{"venue":"cam-anarch"},{"type":"NPC"}]}}' })
-			.expect( 200, done );
 		});
 	});
 
@@ -258,6 +205,13 @@ module.exports = function() {
 			venue: 'cam-anarch'
 		};
 
+		helpers.testPerms( { url: '/v1/characters', verb: 'creating', method: 'post' }, [
+			{ text: 'without correct permission', body: newChar, token: 'adst' },
+			{ text: 'with correct permission', body: newChar, token: 'nst', code: 200 },
+			{ text: 'without attributes', body: {}, token: 'nst', code: 422 },
+			{ text: 'without correct venue permission', body: newChar, token: 'anst' }
+		]);
+
 		it( 'fails for creating without correct permission', function( done ) {
 			request.post( '/v1/characters' )
 			.query({ token: 'adst' })
@@ -286,27 +240,6 @@ module.exports = function() {
 			.expect( 400, done );
 		});
 
-		it( 'works for creating with correct permission', function( done ) {
-			request.post( '/v1/characters' )
-			.query({ token: 'nst' })
-			.send( newChar )
-			.expect( 200 )
-			.end( ( err, resp ) => {
-				if ( err ) {
-					done( err );
-				}
-				resp.body.should.have.property( 'id' );
-				done();
-			});
-		});
-
-		it( 'fails for creating without attributes', function( done ) {
-			request.post( '/v1/characters' )
-			.query({ token: 'nst' })
-			.send({})
-			.expect( 422, done );
-		});
-
 		it( 'fails for updating with correct permission', function( done ) {
 			let char = Object.assign( {}, newChar );
 			char.id = 1;
@@ -315,13 +248,6 @@ module.exports = function() {
 			.query({ token: 'nst' })
 			.send( char )
 			.expect( 400, done );
-		});
-
-		it( 'fails for creating without correct venue permission', function( done ) {
-			request.post( '/v1/characters' )
-			.query({ token: 'anst' })
-			.send( newChar )
-			.expect( 403, done );
 		});
 
 		it( 'works for creating with correct venue permission', function( done ) {
@@ -345,65 +271,18 @@ module.exports = function() {
 	describe( 'GET /{id}', function() {
 		helpers.defaultTests( '/v1/characters/1' );
 
-		it( 'fails if getting other PC without permission', function( done ) {
-			request.get( '/v1/characters/3' )
-			.query({ token: 'user1' })
-			.expect( 403, done );
-		});
-
-		it( 'fails if getting NPC without permission', function( done ) {
-			request.get( '/v1/characters/2' )
-			.query({ token: 'user1' })
-			.expect( 403, done );
-		});
-
-		it( 'fails if getting other PC without venue permission', function( done ) {
-			request.get( '/v1/characters/3' )
-			.query({ token: 'user1' })
-			.expect( 403, done );
-		});
-
-		it( 'fails if getting NPC without venue permission', function( done ) {
-			request.get( '/v1/characters/3' )
-			.query({ token: 'anst' })
-			.expect( 403, done );
-		});
-
-		it( 'fails if getting character not under org', function( done ) {
-			request.get( '/v1/characters/3' )
-			.query({ token: 'dst' })
-			.expect( 403, done );
-		});
-
-		it( 'works if getting own PC', function( done ) {
-			request.get( '/v1/characters/1' )
-			.query({ token: 'user1' })
-			.expect( 200, done );
-		});
-
-		it( 'works if getting PC with permission', function( done ) {
-			request.get( '/v1/characters/1' )
-			.query({ token: 'dst' })
-			.expect( 200, done );
-		});
-
-		it( 'works if getting PC with venue permission', function( done ) {
-			request.get( '/v1/characters/1' )
-			.query({ token: 'vst' })
-			.expect( 200, done );
-		});
-
-		it( 'works if getting NPC with permission', function( done ) {
-			request.get( '/v1/characters/2' )
-			.query({ token: 'dst' })
-			.expect( 200, done );
-		});
-
-		it( 'works if getting NPC with venue permission', function( done ) {
-			request.get( '/v1/characters/2' )
-			.query({ token: 'anst' })
-			.expect( 200, done );
-		});
+		helpers.testPerms( { url: '/v1/characters/%id', verb: 'getting' }, [
+			{ text: 'other PC without permission', id: 3 },
+			{ text: 'NPC without permission', id: 2 },
+			{ text: 'other PC without venue permission', id: 3 },
+			{ text: 'NPC without venue permission', id: 3, token: 'anst' },
+			{ text: 'character not under org', id: 3, token: 'dst' },
+			{ text: 'own PC', id: 1, code: 200 },
+			{ text: 'PC with permission', id: 1, token: 'dst', code: 200 },
+			{ text: 'PC with venue permission', id: 1, token: 'vst', code: 200 },
+			{ text: 'NPC with permission', id: 2, token: 'dst', code: 200 },
+			{ text: 'NPC with venue permission', id: 2, token: 'anst', code: 200 },
+		]);
 
 		it( 'returns the correct data', function( done ) {
 			request.get( '/v1/characters/1' )
@@ -453,14 +332,14 @@ module.exports = function() {
 			.catch( err => done( err ) );
 		});
 
-		helpers.testPerms( '/v1/characters/%id', [
-			// { text: 'updating without correct role', id: 1, body, token: 'adst' },
-			{ text: 'updating PC for self', id: 1, body, code: 200 },
-			{ text: 'updating with correct role', id: 1, body, token: 'nst', code: 200 },
-			{ text: 'updating without attributes', id: 1, token: 'nst', code: 422 },
-			// { text: 'updating without correct venue role', id: 1, body, token: 'anst' },
-			{ text: 'updating with correct venue role', id: 2, body: npc, token: 'anst', code: 200 },
-		], 'put' );
+		helpers.testPerms( { url: '/v1/characters/%id', verb: 'updating', method: 'put' }, [
+			// { text: 'without correct role', id: 1, body, token: 'adst' },
+			{ text: 'PC for self', id: 1, body, code: 200 },
+			{ text: 'with correct role', id: 1, body, token: 'nst', code: 200 },
+			{ text: 'without attributes', id: 1, token: 'nst', code: 422 },
+			// { text: 'without correct venue role', id: 1, body, token: 'anst' },
+			{ text: 'with correct venue role', id: 2, body: npc, token: 'anst', code: 200 },
+		]);
 
 		it( 'updates the data', function( done ) {
 			request.put( '/v1/characters/1' )
@@ -503,14 +382,17 @@ module.exports = function() {
 			.catch( err => done( err ) );
 		});
 
-		helpers.testPerms( '/v1/characters/%id/replace', [
-			// { text: 'updating without correct role', id: 1, body, token: 'adst' },
-			{ text: 'updating PC for self', id: 1, body, code: 200 },
-			{ text: 'updating with correct role', id: 1, body, token: 'nst', code: 200 },
-			{ text: 'updating without attributes', id: 1, token: 'nst', code: 422 },
-			// { text: 'updating without correct venue role', id: 1, body, token: 'anst' },
-			{ text: 'updating with correct venue role', id: 2, body: npc, token: 'anst', code: 200 },
-		], 'post' );
+		helpers.testPerms(
+			{ url: '/v1/characters/%id/replace', verb: 'updating', method: 'post' },
+			[
+				// { text: 'without correct role', id: 1, body, token: 'adst' },
+				{ text: 'PC for self', id: 1, body, code: 200 },
+				{ text: 'with correct role', id: 1, body, token: 'nst', code: 200 },
+				{ text: 'without attributes', id: 1, token: 'nst', code: 422 },
+				// { text: 'without correct venue role', id: 1, body, token: 'anst' },
+				{ text: 'with correct venue role', id: 2, body: npc, token: 'anst', code: 200 },
+			]
+		);
 
 		it( 'updates the data', function( done ) {
 			request.post( '/v1/characters/1/replace' )
