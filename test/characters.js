@@ -451,7 +451,7 @@ module.exports = function() {
 		})
 	});
 
-	describe.skip( 'DELETE /{id}', function() {
+	describe( 'DELETE /{id}', function() {
 		helpers.defaultTests( '/v1/characters/1', 'delete' );
 
 		afterEach( 'resets test data', function( done ) {
@@ -476,35 +476,19 @@ module.exports = function() {
 			.catch( err => done( err ) );
 		});
 
-		it( 'fails for deleting without correct permission', function( done ) {
-			request.delete( '/v1/characters/1' )
-			.query({ token: 'user2' })
-			.expect( 403, done );
-		});
-
-		it( 'works for deleting with correct permission', function( done ) {
-			request.delete( '/v1/characters/1' )
-			.query({ token: 'nst' })
-			.expect( 200, done );
-		});
-
-		it( 'fails for deleting without correct venue permission', function( done ) {
-			request.delete( '/v1/characters/1' )
-			.query({ token: 'anst' })
-			.expect( 403, done );
-		});
-
-		it( 'works for deleting with correct venue permission', function( done ) {
-			request.delete( '/v1/characters/2' )
-			.query({ token: 'anst' })
-			.expect( 200, done );
-		});
-
-		it( 'works for deleting own character', function( done ) {
-			request.delete( '/v1/characters/1' )
-			.query({ token: 'user1' })
-			.expect( 200, done );
-		});
+		helpers.testPerms( { url: '/v1/characters/%id', method: 'delete', verb: 'deleting' }, [
+			{ text: 'PC without correct role', token: 'user2', id: 1 },
+			{ text: 'PC without correct venue role', token: 'anst', id: 1 },
+			{ text: 'PC outside org unit', token: 'otherDst', id: 1 },
+			{ text: 'PC with correct role', token: 'nst', id: 1, code: 200 },
+			{ text: 'PC with correct venue role', token: 'vst', id: 1, code: 200 },
+			{ text: 'own PC', id: 1, code: 200 },
+			{ text: 'NPC without correct role', id: 2 },
+			{ text: 'NPC without correct venue role', token: 'vst', id: 2 },
+			{ text: 'NPC outside org unit', token: 'otherDst', id: 2 },
+			{ text: 'NPC with correct role', token: 'nst', id: 2, code: 200 },
+			{ text: 'NPC with correct venue role', token: 'anst', id: 2, code: 200 },
+		]);
 
 		it( 'sets active to false', function( done ) {
 			request.delete( '/v1/characters/1' )
@@ -512,7 +496,7 @@ module.exports = function() {
 			.expect( 200 )
 			.end( err => {
 				if ( err ) {
-					done( err );
+					return done( err );
 				}
 				Character.bypass().findById( 1 )
 				.then( data => {

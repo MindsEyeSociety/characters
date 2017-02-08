@@ -13,70 +13,8 @@ module.exports = function( Character ) {
 
 	Character.afterRemote( 'findById', restrictFind );
 
-	// Validates creation of new objects.
-	Character.beforeRemote( 'create', ( ctx, instance, next ) => {
-		if ( _.has( ctx.args.data, 'id' ) ) {
-			return next( RequestError( 'Cannot update model' ) );
-		} else if ( 'NPC' === ctx.args.data.type && ctx.args.data.userid ) {
-			return next( RequestError( 'NPCs cannot have users' ) );
-		}
-		next();
-	});
-
-	// Sets default scope of single character.
-	Character.beforeRemote( 'findById', ( ctx, instance, next ) => {
-		if ( ! _.has( ctx.args, 'filter.include' ) ) {
-			_.set( ctx.args, 'filter.include', [
-				{ relation: 'textSheets', scope: { order: 'modifiedat DESC', limit: 1 } }
-			] );
-		}
-		next();
-	});
-
-	Character.beforeRemote( 'replaceById', ( ctx, instance, next ) => {
-		let data = ctx.args.data;
-		let user = ctx.args.options;
-
-		if ( _.isEmpty( data ) ) {
-			return next(); // Let Loopback handler take care of this.
-		}
-
-		if ( 'PC' === data.type && ! data.userid ) {
-			return next( RequestError( 'PCs require an associated user ID' ) );
-		} else if ( 'NPC' === data.type && data.userid ) {
-			return next( RequestError( 'NPCs cannot have an associated user ID' ) );
-		}
-
-		Character.bypass().findById( ctx.req.params.id )
-		.then( char => {
-
-			// Make sure locked data isn't changed.
-			if ( data.type !== char.type ) {
-				return next( RequestError( 'Cannot change character type' ) );
-			} else if ( data.venue !== char.venue ) {
-				return next( RequestError( 'Cannot change character venue' ) );
-			} else if ( char.userid && data.userid !== char.userid ) {
-				return next( RequestError( 'Cannot change character user ID' ) );
-			} else if ( data.orgunit !== char.orgunit ) {
-				return next( RequestError( 'Cannot change associated org unit' ) );
-			}
-
-			// Users can update their own character.
-			if ( user.currentUserId === char.userid ) {
-				return next();
-			}
-
-			let perms = 'character_edit';
-			if ( 'NPC' === char.type ) {
-				perms = 'npc_edit';
-			}
-			if ( ! Character.checkPerms( perms, ctx.req.accessToken, ctx ) ) {
-				return next( AuthError() );
-			}
-
-			next();
-		});
-	});
+	Character.beforeRemote( 'replaceById', restrictUpdate );
+	Character.beforeRemote( 'deleteById', restrictDelete );
 
 	/**
 	 * Sets up validation.
@@ -99,11 +37,12 @@ module.exports = function( Character ) {
 	Character.disableRemoteMethodByName( 'prototype.__updateById__textSheets' );
 
 
+	// Sets extra permissions.
 	Character.extraPerms = ( perms, token, ctx ) => {
 
 		if ( -1 !== perms.indexOf( '$self' ) ) {
 			let method = ctx.method.name;
-			if ( 'replaceById' === method ) {
+			if ( 'replaceById' === method || 'deleteById' === method ) {
 				return true;
 			} else if (
 				'findById' === method ||
@@ -141,6 +80,42 @@ module.exports = function( Character ) {
 			returns: { arg: 'data', type: [ Character.modelName ], root: true }
 		}
 	);
+
+	/**
+	 * Overrides default remote methods.
+	 */
+
+	// Validates creation of new objects.
+	Character.beforeRemote( 'create', ( ctx, instance, next ) => {
+		if ( _.has( ctx.args.data, 'id' ) ) {
+			return next( RequestError( 'Cannot update model' ) );
+		} else if ( 'NPC' === ctx.args.data.type && ctx.args.data.userid ) {
+			return next( RequestError( 'NPCs cannot have users' ) );
+		}
+		next();
+	});
+
+	// Sets default scope of single character.
+	Character.beforeRemote( 'findById', ( ctx, instance, next ) => {
+		if ( ! _.has( ctx.args, 'filter.include' ) ) {
+			_.set( ctx.args, 'filter.include', [
+				{ relation: 'textSheets', scope: { order: 'modifiedat DESC', limit: 1 } }
+			] );
+		}
+		next();
+	});
+
+	// Set characters inactive instead of deleting.
+	Character.once( 'attached', () => {
+		Character.deleteById = function( id, options, callback ) {
+			Character.findById( id, ( err, char ) => {
+				if ( err ) {
+					return callback( err );
+				}
+				char.updateAttribute( 'active', false, callback );
+			});
+		}
+	});
 };
 
 /**
@@ -248,6 +223,136 @@ function restrictFind( ctx, instance, next ) {
 		return next( AuthError() );
 	});
 }
+
+
+/**
+ * Restricts before an update takes place.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictUpdate( ctx, instance, next ) {
+	let data = ctx.args.data;
+	let user = ctx.args.options;
+	let Character = ctx.method.ctor;
+
+	if ( _.isEmpty( data ) ) {
+		return next(); // Let Loopback handler take care of this.
+	}
+
+	if ( 'PC' === data.type && ! data.userid ) {
+		return next( RequestError( 'PCs require an associated user ID' ) );
+	} else if ( 'NPC' === data.type && data.userid ) {
+		return next( RequestError( 'NPCs cannot have an associated user ID' ) );
+	}
+
+	Character.bypass().findById( ctx.req.params.id )
+	.then( char => {
+
+		// Make sure locked data isn't changed.
+		if ( data.type !== char.type ) {
+			return next( RequestError( 'Cannot change character type' ) );
+		} else if ( data.venue !== char.venue ) {
+			return next( RequestError( 'Cannot change character venue' ) );
+		} else if ( char.userid && data.userid !== char.userid ) {
+			return next( RequestError( 'Cannot change character user ID' ) );
+		} else if ( data.orgunit !== char.orgunit ) {
+			return next( RequestError( 'Cannot change associated org unit' ) );
+		}
+
+		// Users can update their own character.
+		if ( user.currentUserId === char.userid ) {
+			return next();
+		}
+
+		let perm = 'character_edit';
+		if ( 'NPC' === char.type ) {
+			perm = 'npc_edit';
+		}
+		let perms = ctx.method.ctor.normalizePerms( perm, ctx );
+
+		let units = [];
+		let offices = user.offices;
+		for ( let office in offices ) {
+			if ( _.intersection( offices[ office ], perms ).length ) {
+				units.push( parseInt( office ) );
+			}
+		}
+
+		if ( ! units.length ) {
+			return next( AuthError() );
+		}
+
+		// National wins here.
+		if ( -1 !== units.indexOf( 1 ) ) {
+			return next();
+		}
+
+		getTree( units )
+		.then( ids => {
+			if ( -1 !== ids.indexOf( char.orgunit ) ) {
+				return next();
+			}
+			return next( AuthError() );
+		});
+	});
+}
+
+
+/**
+ * Restricts before an update takes place.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictDelete( ctx, instance, next ) {
+	let user = ctx.args.options;
+	let Character = ctx.method.ctor;
+
+	Character.bypass().findById( ctx.args.id )
+	.then( char => {
+
+		// Users can delete their own character.
+		if ( user.currentUserId === char.userid ) {
+			return next();
+		}
+
+		let perm = 'character_edit';
+		if ( 'NPC' === char.type ) {
+			perm = 'npc_edit';
+		}
+		_.set( ctx, 'args.data.venue', char.venue );
+		let perms = ctx.method.ctor.normalizePerms( perm, ctx );
+
+		let units = [];
+		let offices = user.offices;
+		for ( let office in offices ) {
+			if ( _.intersection( offices[ office ], perms ).length ) {
+				units.push( parseInt( office ) );
+			}
+		}
+
+		if ( ! units.length ) {
+			return next( AuthError() );
+		}
+
+		// National wins here.
+		if ( -1 !== units.indexOf( 1 ) ) {
+			return next();
+		}
+
+		getTree( units )
+		.then( ids => {
+			if ( -1 !== ids.indexOf( char.orgunit ) ) {
+				return next();
+			}
+			return next( AuthError() );
+		});
+	});
+}
+
 
 /**
  * Gets an array of valid org units under a given office.
