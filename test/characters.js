@@ -185,20 +185,12 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters', 'post' );
 
 		afterEach( 'resets test data', function( done ) {
-			Promise.join(
-				Character.bypass().destroyAll({ id: { gt: 3 } }),
-				Character.bypass().replaceById( 1, {
-					'userid': 1,
-					'orgunit': 4,
-					'name': 'Lark Perzy Winslow Pellettieri McPhee',
-					'type': 'PC',
-					'venue': 'cam-anarch'
-				}),
-				() => done()
-			).catch( err => done( err ) );
+			Character.bypass().destroyAll({ id: { gt: 3 } })
+			.then( () => done() )
+			.catch( err => done( err ) );
 		});
 
-		const newChar = {
+		let body = {
 			userid: 11,
 			orgunit: 4,
 			name: 'Test',
@@ -207,31 +199,17 @@ module.exports = function() {
 		};
 
 		helpers.testPerms( { url: '/v1/characters', verb: 'creating', method: 'post' }, [
-			{ text: 'without correct permission', body: newChar, token: 'adst' },
-			{ text: 'with correct permission', body: newChar, token: 'nst', code: 200 },
+			{ text: 'without correct role', body, token: 'adst' },
+			{ text: 'with correct role', body, token: 'nst', code: 200 },
+			{ text: 'for self', body: clone( body, 'userid', 1 ), code: 200 },
+			{ text: 'with id set', body: clone( body, 'id', 1 ), token: 'nst', code: 400 },
 			{ text: 'without attributes', body: {}, token: 'nst', code: 422 },
-			{ text: 'without correct venue permission', body: newChar, token: 'anst' }
+			{ text: 'without correct venue role', body, token: 'anst' },
+			{ text: 'with correct venue role', body: clone( body, 'venue', 'space' ), token: 'anst', code: 200 }
 		]);
 
-		it( 'fails for creating without correct permission', function( done ) {
-			request.post( '/v1/characters' )
-			.query({ token: 'adst' })
-			.send( newChar )
-			.expect( 403, done );
-		});
-
-		it( 'works for creating PC for self', function( done ) {
-			let char = Object.assign( {}, newChar );
-			char.userid = 1;
-
-			request.post( '/v1/characters' )
-			.query({ token: 'user1' })
-			.send( char )
-			.expect( 200, done );
-		});
-
 		it( 'fails for creating NPC for self', function( done ) {
-			let char = Object.assign( {}, newChar );
+			let char = Object.assign( {}, body );
 			char.userid = 1;
 			char.type = 'NPC';
 
@@ -241,23 +219,10 @@ module.exports = function() {
 			.expect( 400, done );
 		});
 
-		it( 'fails for updating with correct permission', function( done ) {
-			let char = Object.assign( {}, newChar );
-			char.id = 1;
-
+		it( 'provides correct data', function( done ) {
 			request.post( '/v1/characters' )
-			.query({ token: 'nst' })
-			.send( char )
-			.expect( 400, done );
-		});
-
-		it( 'works for creating with correct venue permission', function( done ) {
-			let char = Object.assign( {}, newChar );
-			char.venue = 'space';
-
-			request.post( '/v1/characters' )
-			.query({ token: 'anst' })
-			.send( char )
+			.query({ token: 'user1' })
+			.send( clone( body, 'userid', 1 ) )
 			.expect( 200 )
 			.end( ( err, resp ) => {
 				if ( err ) {
