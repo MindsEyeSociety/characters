@@ -156,6 +156,8 @@
 		"__get__tags": "*",
 		"__count__tags": "*",
 		"__link__tags": "*",
-		"__unlink__tags": "*"
+		"__unlink__tags": "*",
+		"__get__textSheets": "*",
+		"__created__textSheets": "*"
 	}
 }

@@ -16,11 +16,14 @@ module.exports = function( Character ) {
 	Character.beforeRemote( 'replaceById', restrictUpdate );
 	Character.beforeRemote( 'deleteById', restrictDelete );
 
-	Character.beforeRemote( 'prototype.__get__tags', restrictTags );
-	Character.beforeRemote( 'prototype.__count__tags', restrictTags );
-	Character.beforeRemote( 'prototype.__link__tags', restrictTags );
+	Character.beforeRemote( 'prototype.__get__tags', restrictRelated );
+	Character.beforeRemote( 'prototype.__count__tags', restrictRelated );
+	Character.beforeRemote( 'prototype.__link__tags', restrictRelated );
 	Character.beforeRemote( 'prototype.__link__tags', restrictLinkTag );
-	Character.beforeRemote( 'prototype.__unlink__tags', restrictTags );
+	Character.beforeRemote( 'prototype.__unlink__tags', restrictRelated );
+
+	Character.beforeRemote( 'prototype.__get__textSheets', restrictRelated );
+	Character.beforeRemote( 'prototype.__created__textSheets', restrictRelated );
 
 	/**
 	 * Sets up validation.
@@ -317,7 +320,7 @@ function restrictDelete( ctx, instance, next ) {
  * @param {Function} next     Callback.
  * @return {void}
  */
-function restrictTags( ctx, instance, next ) {
+function restrictRelated( ctx, instance, next ) {
 	let Character = ctx.method.ctor;
 
 	Character.bypass().findById( ctx.req.params.id )

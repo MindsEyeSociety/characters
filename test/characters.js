@@ -627,12 +627,12 @@ module.exports = function() {
 		});
 	});
 
-	describe.skip( 'GET /{id}/textSheets', function() {
+	describe( 'GET /{id}/textSheets', function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets' );
 
 		helpers.testPerms( { url: '/v1/characters/%id/textSheets', verb: 'getting' }, [
-			{ text: 'other PC without role', id: 1 },
-			{ text: 'NPC without role', id: 1 },
+			{ text: 'other PC without role', id: 1, token: 'user2' },
+			{ text: 'NPC without role', id: 2 },
 			{ text: 'other PC without venue role', id: 3, token: 'anst' },
 			{ text: 'NPC without venue role', id: 3, token: 'anst' },
 			{ text: 'character not under org', id: 3, token: 'dst' },
@@ -662,7 +662,7 @@ module.exports = function() {
 		helpers.testPerms(
 			{ url: '/v1/characters/%id/textSheets', verb: 'updating', method: 'post' },
 			[
-				{ text: 'other PC without role', id: 3, body },
+				{ text: 'other PC without role', id: 1, token: 'user2', body },
 				{ text: 'NPC without role', id: 2, body },
 				{ text: 'other PC without venue role', id: 3, token: 'anst', body },
 				{ text: 'NPC without venue role', id: 3, token: 'anst', body },
@@ -676,11 +676,9 @@ module.exports = function() {
 		);
 
 		it( 'fails if missing sheet', function( done ) {
-			let badBody = Object.assign( {}, body );
-			badBody.sheet = null;
 			request.post( '/v1/characters/1/textSheets' )
 			.query({ token: 'user1' })
-			.send( badBody )
+			.send( clone( body, 'sheet', null ) )
 			.expect( 422, done );
 		});
 
