@@ -38,7 +38,7 @@ function testPerms( url, tests, method = 'get' ) {
 			url: url
 		});
 		let start = 'fails if';
-		if ( 200 === test.code ) {
+		if ( test.code < 300 ) {
 			start = 'works if';
 		}
 
@@ -50,7 +50,7 @@ function testPerms( url, tests, method = 'get' ) {
 			test.url = test.url.replace( '%id', test.id );
 		}
 		if ( test.fk ) {
-			test.url.replace( '%fk', test.fk );
+			test.url = test.url.replace( '%fk', test.fk );
 		}
 
 		it( `${start} ${test.text}`, function( done ) {

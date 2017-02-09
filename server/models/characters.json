@@ -154,6 +154,8 @@
 		"exists": "*",
 		"me": "*",
 		"__get__tags": "*",
-		"__count__tags": "*"
+		"__count__tags": "*",
+		"__link__tags": "*",
+		"__unlink__tags": "*"
 	}
 }

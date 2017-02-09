@@ -18,6 +18,9 @@ module.exports = function( Character ) {
 
 	Character.beforeRemote( 'prototype.__get__tags', restrictTags );
 	Character.beforeRemote( 'prototype.__count__tags', restrictTags );
+	Character.beforeRemote( 'prototype.__link__tags', restrictTags );
+	Character.beforeRemote( 'prototype.__link__tags', restrictLinkTag );
+	Character.beforeRemote( 'prototype.__unlink__tags', restrictTags );
 
 	/**
 	 * Sets up validation.
@@ -320,6 +323,9 @@ function restrictTags( ctx, instance, next ) {
 	Character.bypass().findById( ctx.req.params.id )
 	.then( char => {
 
+		// Saves a reference for the restrictLinkTag method.
+		_.set( ctx.args, 'data.character', char );
+
 		// Users can delete their own character.
 		if ( ctx.args.options.currentUserId === char.userid ) {
 			return next();
@@ -336,6 +342,29 @@ function restrictTags( ctx, instance, next ) {
 				return next();
 			}
 		});
+	})
+	.catch( err => next( err ) );
+}
+
+
+function restrictLinkTag( ctx, instance, next ) {
+	let Tag = ctx.method.ctor.app.models.Tags;
+	let char = ctx.args.data.character;
+
+	Tag.bypass().findById( ctx.req.params.fk )
+	.then( tag => {
+		if ( ! tag ) {
+			return next({
+				statusCode: 404,
+				message: 'Tag not found',
+				code: 'MODEL_NOT_FOUND'
+			})
+		}
+
+		if ( char.venue !== tag.venue || char.type !== tag.type ) {
+			return next( RequestError() );
+		}
+		return next();
 	})
 	.catch( err => next( err ) );
 }

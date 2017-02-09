@@ -27,7 +27,7 @@ module.exports = function() {
 		helpers.testPerms( { url: '/v1/characters', verb: 'getting' }, [
 			{ text: 'with user token' },
 			{ text: 'PCs with NPC roles', token: 'anst' },
-			{ text: 'with permission', token: 'nst', code: 200 },
+			{ text: 'with role', token: 'nst', code: 200 },
 			{ text: 'venue NPCs without venue role', token: 'vst', where: {and:[{venue:'space'},{type:'NPC'}]} },
 			{ text: 'venue NPCs without venue filter', token: 'vst', where: {type:'NPC'} },
 			{ text: 'NPCs with venue role and filter', token: 'vst', where: {and:[{venue:'cam-anarch'},{type:'NPC'}]}, code: 200 },
@@ -238,16 +238,16 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1' );
 
 		helpers.testPerms( { url: '/v1/characters/%id', verb: 'getting' }, [
-			{ text: 'other PC without permission', id: 3 },
-			{ text: 'NPC without permission', id: 2 },
-			{ text: 'other PC without venue permission', id: 3 },
-			{ text: 'NPC without venue permission', id: 3, token: 'anst' },
+			{ text: 'other PC without role', id: 3 },
+			{ text: 'NPC without role', id: 2 },
+			{ text: 'other PC without venue role', id: 3 },
+			{ text: 'NPC without venue role', id: 3, token: 'anst' },
 			{ text: 'character not under org', id: 3, token: 'dst' },
 			{ text: 'own PC', id: 1, code: 200 },
-			{ text: 'PC with permission', id: 1, token: 'dst', code: 200 },
-			{ text: 'PC with venue permission', id: 1, token: 'vst', code: 200 },
-			{ text: 'NPC with permission', id: 2, token: 'dst', code: 200 },
-			{ text: 'NPC with venue permission', id: 2, token: 'anst', code: 200 },
+			{ text: 'PC with role', id: 1, token: 'dst', code: 200 },
+			{ text: 'PC with venue role', id: 1, token: 'vst', code: 200 },
+			{ text: 'NPC with role', id: 2, token: 'dst', code: 200 },
+			{ text: 'NPC with venue role', id: 2, token: 'anst', code: 200 },
 		]);
 
 		it( 'returns the correct data', function( done ) {
@@ -477,16 +477,16 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1/tags' );
 
 		helpers.testPerms( '/v1/characters/%id/tags', [
-			{ text: 'getting other PC without permission', id: 3 },
-			{ text: 'getting NPC without permission', id: 2 },
-			{ text: 'getting other PC without venue permission', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue permission', id: 3, token: 'anst' },
+			{ text: 'getting other PC without role', id: 3 },
+			{ text: 'getting NPC without role', id: 2 },
+			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
 			{ text: 'getting character not under org', id: 3, token: 'dst' },
 			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with permission', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue permission', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with permission', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue permission', code: 200, id: 2, token: 'anst' },
+			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 
 		it( 'returns the correct data', function( done ) {
@@ -510,16 +510,16 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1/tags/count' );
 
 		helpers.testPerms( '/v1/characters/%id/tags/count', [
-			{ text: 'getting other PC without permission', id: 3 },
-			{ text: 'getting NPC without permission', id: 3 },
-			{ text: 'getting other PC without venue permission', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue permission', id: 3, token: 'anst' },
+			{ text: 'getting other PC without role', id: 3 },
+			{ text: 'getting NPC without role', id: 3 },
+			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
 			{ text: 'getting character not under org', id: 3, token: 'dst' },
 			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with permission', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue permission', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with permission', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue permission', code: 200, id: 2, token: 'anst' },
+			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 
 		it( 'returns the correct data', function( done ) {
@@ -536,7 +536,7 @@ module.exports = function() {
 		});
 	});
 
-	describe.skip( 'PUT /{id}/tags/rel/{fk}', function() {
+	describe( 'PUT /{id}/tags/rel/{fk}', function() {
 		helpers.defaultTests( '/v1/characters/1/tags/rel/1', 'put' );
 
 		afterEach( 'resets test data', function( done ) {
@@ -545,22 +545,25 @@ module.exports = function() {
 			.catch( err => done( err ) );
 		});
 
-		helpers.testPerms( '/v1/characters/%id/tags/rel/%fk', [
-			{ text: 'tags other PC without permission', token: 'user2', id: 1, fk: 1 },
-			{ text: 'tags other PC without venue permission', token: 'anst', id: 1, fk: 1 },
-			{ text: 'tags NPC without permission', id: 2, fk: 5 },
-			{ text: 'tags NPC without venue NPC permission', id: 2, fk: 4, token: 'vst' },
-			{ text: 'tags non-existent tag', id: 1, fk: 100, token: 'nst', code: 404 },
-			{ text: 'tags non-existent character', id: 100, fk: 1, token: 'nst', code: 404 },
-			{ text: 'tags PC with NPC tag', id: 1, fk: 5, code: 400 },
-			{ text: 'tags PC with incorrect venue tag', id: 3, fk: 1, token: 'nst', code: 400 },
-			{ text: 'tags NPC with PC tag', id: 2, fk: 1, token: 'nst', code: 400 },
-			{ text: 'tags NPC with incorrect venue tag', id: 2, fk: 5, token: 'nst', code: 400 },
-			{ text: 'tags own PC with correct tag', id: 1, fk: 1, code: 200 },
-			{ text: 'tags PC with correct permission', id: 1, fk: 1, token: 'dst', code: 200 },
-			{ text: 'tags NPC with correct permission', id: 2, fk: 4, token: 'dst', code: 200 },
-			{ text: 'tags NPC with correct venue permission', id: 2, fk: 4, token: 'anst', code: 200 }
-		], 'put' );
+		helpers.testPerms(
+			{ url: '/v1/characters/%id/tags/rel/%fk', method: 'put', verb: 'tags' },
+			[
+				{ text: 'other PC without role', token: 'user2', id: 1, fk: 1 },
+				{ text: 'other PC without venue role', token: 'anst', id: 1, fk: 1 },
+				{ text: 'NPC without role', id: 2, fk: 5 },
+				{ text: 'NPC without venue NPC role', id: 2, fk: 4, token: 'vst' },
+				{ text: 'non-existent tag', id: 1, fk: 100, token: 'nst', code: 404 },
+				{ text: 'non-existent character', id: 100, fk: 1, token: 'nst', code: 404 },
+				{ text: 'PC with NPC tag', id: 1, fk: 5, code: 400 },
+				{ text: 'PC with incorrect venue tag', id: 3, fk: 1, token: 'nst', code: 400 },
+				{ text: 'NPC with PC tag', id: 2, fk: 1, token: 'nst', code: 400 },
+				{ text: 'NPC with incorrect venue tag', id: 2, fk: 5, token: 'nst', code: 400 },
+				{ text: 'own PC with correct tag', id: 1, fk: 1, code: 200 },
+				{ text: 'PC with correct role', id: 1, fk: 1, token: 'dst', code: 200 },
+				{ text: 'NPC with correct role', id: 2, fk: 4, token: 'dst', code: 200 },
+				{ text: 'NPC with correct venue role', id: 2, fk: 4, token: 'anst', code: 200 }
+			]
+		);
 
 		it( 'correctly creates a tag', function( done ) {
 			request.put( '/v1/characters/1/tags/rel/1' )
@@ -580,50 +583,44 @@ module.exports = function() {
 		});
 	});
 
-	describe.skip( 'DELETE /{id}/tags/rel/{fk}', function() {
+	describe( 'DELETE /{id}/tags/rel/{fk}', function() {
 		helpers.defaultTests( '/v1/characters/1/tags/rel/1', 'delete' );
 
 		afterEach( 'resets test data', function( done ) {
 			let CharacterTags = helpers.app.models.CharacterTags;
-			Promise.all([
-				CharacterTags.replaceOrCreate({ id: 1, characterid: 1, tagid: 1 }),
-				CharacterTags.replaceOrCreate({ id: 2, characterid: 1, tagid: 2 }),
-				CharacterTags.replaceOrCreate({ id: 3, characterid: 1, tagid: 3 }),
-				CharacterTags.replaceOrCreate({ id: 4, characterid: 2, tagid: 4 }),
-				() => done()
-			])
-			.catch( err => done( err ) );
+			CharacterTags.replaceOrCreate([
+				{ id: 1, characterid: 1, tagid: 1 },
+				{ id: 2, characterid: 1, tagid: 2 },
+				{ id: 3, characterid: 1, tagid: 3 },
+				{ id: 4, characterid: 2, tagid: 4 }
+			], () => done() );
 		});
 
-		helpers.testPerms( '/v1/characters/%id/tags/rel/%fk', [
-			{ text: 'tags other PC without permission', token: 'user2', id: 1, fk: 1 },
-			{ text: 'tags other PC without venue permission', token: 'anst', id: 1, fk: 1 },
-			{ text: 'tags NPC without permission', id: 2, fk: 5 },
-			{ text: 'tags NPC without venue NPC permission', id: 2, fk: 4, token: 'vst' },
-			{ text: 'tags non-existent tag', id: 1, fk: 100, token: 'nst', code: 404 },
-			{ text: 'tags non-existent character', id: 100, fk: 1, token: 'nst', code: 404 },
-			{ text: 'tags PC with NPC tag', id: 1, fk: 5, code: 400 },
-			{ text: 'tags PC with incorrect venue tag', id: 3, fk: 1, token: 'nst', code: 400 },
-			{ text: 'tags NPC with PC tag', id: 2, fk: 1, token: 'nst', code: 400 },
-			{ text: 'tags NPC with incorrect venue tag', id: 2, fk: 5, token: 'nst', code: 400 },
-			{ text: 'tags own PC with correct tag', id: 1, fk: 1, code: 200 },
-			{ text: 'tags PC with correct permission', id: 1, fk: 1, token: 'dst', code: 200 },
-			{ text: 'tags NPC with correct permission', id: 2, fk: 4, token: 'dst', code: 200 },
-			{ text: 'tags NPC with correct venue permission', id: 2, fk: 4, token: 'anst', code: 200 }
-		], 'delete' );
+		helpers.testPerms(
+			{ url: '/v1/characters/%id/tags/rel/%fk', method: 'delete', verb: 'untags' },
+			[
+				{ text: 'other PC without role', token: 'user2', id: 1, fk: 1 },
+				{ text: 'other PC without venue role', token: 'anst', id: 1, fk: 1 },
+				{ text: 'NPC without role', id: 2, fk: 5 },
+				{ text: 'NPC without venue NPC role', id: 2, fk: 4, token: 'vst' },
+				{ text: 'own PC with correct tag', id: 1, fk: 1, code: 204 },
+				{ text: 'PC with correct role', id: 1, fk: 1, token: 'dst', code: 204 },
+				{ text: 'NPC with correct role', id: 2, fk: 4, token: 'dst', code: 204 },
+				{ text: 'NPC with correct venue role', id: 2, fk: 4, token: 'anst', code: 204 }
+			]);
 
 		it( 'correctly deletes a tag', function( done ) {
 			request.delete( '/v1/characters/1/tags/rel/1' )
 			.query({ token: 'user1' })
-			.expect( 200 )
+			.expect( 204 )
 			.end( err => {
 				if ( err ) {
-					done( err );
+					return done( err );
 				}
 				request.get( '/v1/characters/1/tags' )
 				.query({ token: 'user1' })
 				.end( ( err, resp ) => {
-					resp.body.should.be.an.Array().with.length( 3 );
+					resp.body.should.be.an.Array().with.length( 2 );
 					done();
 				});
 			});
@@ -634,16 +631,16 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets' );
 
 		helpers.testPerms( '/v1/characters/%id/textSheets', [
-			{ text: 'getting other PC without permission', id: 1 },
-			{ text: 'getting NPC without permission', id: 1 },
-			{ text: 'getting other PC without venue permission', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue permission', id: 3, token: 'anst' },
+			{ text: 'getting other PC without role', id: 1 },
+			{ text: 'getting NPC without role', id: 1 },
+			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
 			{ text: 'getting character not under org', id: 3, token: 'dst' },
 			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with permission', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue permission', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with permission', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue permission', code: 200, id: 2, token: 'anst' },
+			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 	});
 
@@ -663,16 +660,16 @@ module.exports = function() {
 		};
 
 		helpers.testPerms( '/v1/characters/%id/textSheets', [
-			{ text: 'updating other PC without permission', id: 3, body },
-			{ text: 'updating NPC without permission', id: 2, body },
-			{ text: 'updating other PC without venue permission', id: 3, token: 'anst', body },
-			{ text: 'updating NPC without venue permission', id: 3, token: 'anst', body },
+			{ text: 'updating other PC without role', id: 3, body },
+			{ text: 'updating NPC without role', id: 2, body },
+			{ text: 'updating other PC without venue role', id: 3, token: 'anst', body },
+			{ text: 'updating NPC without venue role', id: 3, token: 'anst', body },
 			{ text: 'updating character not under org', id: 3, token: 'dst', body },
 			{ text: 'updating own PC', code: 200, id: 1, body },
-			{ text: 'updating PC with permission', code: 200, id: 1, token: 'dst', body },
-			{ text: 'updating PC with venue permission', code: 200, id: 1, token: 'vst', body },
-			{ text: 'updating NPC with permission', code: 200, id: 2, token: 'dst', body },
-			{ text: 'updating NPC with venue permission', code: 200, id: 2, token: 'anst', body },
+			{ text: 'updating PC with role', code: 200, id: 1, token: 'dst', body },
+			{ text: 'updating PC with venue role', code: 200, id: 1, token: 'vst', body },
+			{ text: 'updating NPC with role', code: 200, id: 2, token: 'dst', body },
+			{ text: 'updating NPC with venue role', code: 200, id: 2, token: 'anst', body },
 		], 'post' );
 
 		it( 'fails if missing sheet', function( done ) {
@@ -711,16 +708,16 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets/1' );
 
 		helpers.testPerms( '/v1/characters/%id/textSheets/%fk', [
-			{ text: 'getting other PC without permission', id: 1, fk: 1 },
-			{ text: 'getting NPC without permission', id: 1, fk: 1 },
-			{ text: 'getting other PC without venue permission', id: 3, fk: 1, token: 'anst' },
-			{ text: 'getting NPC without venue permission', id: 3, fk: 1, token: 'anst' },
+			{ text: 'getting other PC without role', id: 1, fk: 1 },
+			{ text: 'getting NPC without role', id: 1, fk: 1 },
+			{ text: 'getting other PC without venue role', id: 3, fk: 1, token: 'anst' },
+			{ text: 'getting NPC without venue role', id: 3, fk: 1, token: 'anst' },
 			{ text: 'getting character not under org', id: 3, fk: 1, token: 'dst' },
 			{ text: 'getting own PC', code: 200, id: 1, fk: 1 },
-			{ text: 'getting PC with permission', code: 200, id: 1, fk: 1, token: 'dst' },
-			{ text: 'getting PC with venue permission', code: 200, id: 1, fk: 1, token: 'vst' },
-			{ text: 'getting NPC with permission', code: 200, id: 2, fk: 1, token: 'dst' },
-			{ text: 'getting NPC with venue permission', code: 200, id: 2, fk: 1, token: 'anst' },
+			{ text: 'getting PC with role', code: 200, id: 1, fk: 1, token: 'dst' },
+			{ text: 'getting PC with venue role', code: 200, id: 1, fk: 1, token: 'vst' },
+			{ text: 'getting NPC with role', code: 200, id: 2, fk: 1, token: 'dst' },
+			{ text: 'getting NPC with venue role', code: 200, id: 2, fk: 1, token: 'anst' },
 		]);
 	});
 
@@ -728,16 +725,16 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets/count' );
 
 		helpers.testPerms( '/v1/characters/%id/textSheets/count', [
-			{ text: 'getting other PC without permission', id: 1 },
-			{ text: 'getting NPC without permission', id: 1 },
-			{ text: 'getting other PC without venue permission', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue permission', id: 3, token: 'anst' },
+			{ text: 'getting other PC without role', id: 1 },
+			{ text: 'getting NPC without role', id: 1 },
+			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
 			{ text: 'getting character not under org', id: 3, token: 'dst' },
 			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with permission', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue permission', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with permission', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue permission', code: 200, id: 2, token: 'anst' },
+			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 	});
 
