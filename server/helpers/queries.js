@@ -35,11 +35,14 @@ module.exports.addWhere = function( ctx, where ) {
  * @return {mixed}
  */
 module.exports.findWhere = function ( ctx, key ) {
-	if ( ! _.has( ctx, 'args.filter.where' ) ) {
+	if (
+		! _.has( ctx.args, 'filter.where' ) &&
+		! _.has( ctx.args, 'where' )
+	) {
 		return false;
 	}
 
-	let where = ctx.args.filter.where;
+	let where = _.get( ctx.args, 'filter.where', ctx.args.where );
 	let found;
 
 	if ( _.has( where, key ) ) {

@@ -742,17 +742,19 @@ module.exports = function() {
 	describe( 'GET /count', function() {
 		helpers.defaultTests( '/v1/characters/count' );
 
+		let npc = { where: '{"type":"NPC"}' };
+
 		helpers.testPerms( '/v1/characters/count', [
 			{ text: 'user token is provided' },
 			{ text: 'valid token provided', token: 'nst', code: 200 },
 			{ text: 'NPC only token for PCs is provided', token: 'anst' },
 			{ text: 'PC venue role without venue set', token: 'vst' },
-			// { text: 'PC venue role with venue set', token: 'vst', filter: { where: { venue: 'cam-anarch' } }, code: 200 },
-			// { text: 'getting NPC without role', token: 'adst', where: {type:'NPC'} },
-			{ text: 'getting NPC with role', token: 'dst', where: {type:'NPC'}, code: 200 },
-			{ text: 'getting NPC without venue role', token: 'vst', where: {and:[{venue:'space'},{type:'NPC'}]} },
-			{ text: 'getting venue NPC without venue filter', token: 'vst', where: {type:'NPC'} },
-			{ text: 'getting NPC with role and filter', token: 'vst', where: {and:[{venue:'cam-anarch'},{type:'NPC'}]} }
+			{ text: 'PC venue role with venue set', token: 'vst', query: { where: '{"venue": "cam-anarch"}' }, code: 200 },
+			{ text: 'getting NPC without role', token: 'adst', query: npc },
+			{ text: 'getting NPC with role', token: 'dst', query: npc, code: 200 },
+			{ text: 'getting NPC without venue role', token: 'vst', query: { where: '{"and":[{"venue":"space"},{"type":"NPC"}]}' } },
+			{ text: 'getting venue NPC without venue filter', token: 'vst', query: npc },
+			{ text: 'getting NPC with role and filter', token: 'vst', query: { where: '{"and":[{"venue":"cam-anarch"},{"type":"NPC"}]}' }, code: 200 }
 		]);
 	});
 

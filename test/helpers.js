@@ -64,6 +64,8 @@ function testPerms( url, tests, method = 'get' ) {
 				query.query({ filter: JSON.stringify( test.filter ) });
 			} else if ( test.where ) {
 				query.query({ filter: JSON.stringify({ where: test.where }) });
+			} else if ( test.query ) {
+				query.query( test.query );
 			}
 
 			if ( ! test.debug ) {
