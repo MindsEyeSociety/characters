@@ -476,17 +476,17 @@ module.exports = function() {
 	describe( 'GET /{id}/tags', function() {
 		helpers.defaultTests( '/v1/characters/1/tags' );
 
-		helpers.testPerms( '/v1/characters/%id/tags', [
-			{ text: 'getting other PC without role', id: 3 },
-			{ text: 'getting NPC without role', id: 2 },
-			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting character not under org', id: 3, token: 'dst' },
-			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
+		helpers.testPerms( { url: '/v1/characters/%id/tags', verb: 'getting' }, [
+			{ text: 'other PC without role', id: 3 },
+			{ text: 'NPC without role', id: 2 },
+			{ text: 'other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'NPC without venue role', id: 3, token: 'anst' },
+			{ text: 'character not under org', id: 3, token: 'dst' },
+			{ text: 'own PC', code: 200, id: 1 },
+			{ text: 'PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 
 		it( 'returns the correct data', function( done ) {
@@ -509,17 +509,17 @@ module.exports = function() {
 	describe( 'GET /{id}/tags/count', function() {
 		helpers.defaultTests( '/v1/characters/1/tags/count' );
 
-		helpers.testPerms( '/v1/characters/%id/tags/count', [
-			{ text: 'getting other PC without role', id: 3 },
-			{ text: 'getting NPC without role', id: 3 },
-			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting character not under org', id: 3, token: 'dst' },
-			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
+		helpers.testPerms( { url: '/v1/characters/%id/tags/count', verb: 'getting' }, [
+			{ text: 'other PC without role', id: 3 },
+			{ text: 'NPC without role', id: 3 },
+			{ text: 'other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'NPC without venue role', id: 3, token: 'anst' },
+			{ text: 'character not under org', id: 3, token: 'dst' },
+			{ text: 'own PC', code: 200, id: 1 },
+			{ text: 'PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 
 		it( 'returns the correct data', function( done ) {
@@ -630,17 +630,17 @@ module.exports = function() {
 	describe.skip( 'GET /{id}/textSheets', function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets' );
 
-		helpers.testPerms( '/v1/characters/%id/textSheets', [
-			{ text: 'getting other PC without role', id: 1 },
-			{ text: 'getting NPC without role', id: 1 },
-			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting character not under org', id: 3, token: 'dst' },
-			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
+		helpers.testPerms( { url: '/v1/characters/%id/textSheets', verb: 'getting' }, [
+			{ text: 'other PC without role', id: 1 },
+			{ text: 'NPC without role', id: 1 },
+			{ text: 'other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'NPC without venue role', id: 3, token: 'anst' },
+			{ text: 'character not under org', id: 3, token: 'dst' },
+			{ text: 'own PC', code: 200, id: 1 },
+			{ text: 'PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 	});
 
@@ -659,18 +659,21 @@ module.exports = function() {
 			background: 'test background'
 		};
 
-		helpers.testPerms( '/v1/characters/%id/textSheets', [
-			{ text: 'updating other PC without role', id: 3, body },
-			{ text: 'updating NPC without role', id: 2, body },
-			{ text: 'updating other PC without venue role', id: 3, token: 'anst', body },
-			{ text: 'updating NPC without venue role', id: 3, token: 'anst', body },
-			{ text: 'updating character not under org', id: 3, token: 'dst', body },
-			{ text: 'updating own PC', code: 200, id: 1, body },
-			{ text: 'updating PC with role', code: 200, id: 1, token: 'dst', body },
-			{ text: 'updating PC with venue role', code: 200, id: 1, token: 'vst', body },
-			{ text: 'updating NPC with role', code: 200, id: 2, token: 'dst', body },
-			{ text: 'updating NPC with venue role', code: 200, id: 2, token: 'anst', body },
-		], 'post' );
+		helpers.testPerms(
+			{ url: '/v1/characters/%id/textSheets', verb: 'updating', method: 'post' },
+			[
+				{ text: 'other PC without role', id: 3, body },
+				{ text: 'NPC without role', id: 2, body },
+				{ text: 'other PC without venue role', id: 3, token: 'anst', body },
+				{ text: 'NPC without venue role', id: 3, token: 'anst', body },
+				{ text: 'character not under org', id: 3, token: 'dst', body },
+				{ text: 'own PC', code: 200, id: 1, body },
+				{ text: 'PC with role', code: 200, id: 1, token: 'dst', body },
+				{ text: 'PC with venue role', code: 200, id: 1, token: 'vst', body },
+				{ text: 'NPC with role', code: 200, id: 2, token: 'dst', body },
+				{ text: 'NPC with venue role', code: 200, id: 2, token: 'anst', body },
+			]
+		);
 
 		it( 'fails if missing sheet', function( done ) {
 			let badBody = Object.assign( {}, body );
@@ -707,34 +710,34 @@ module.exports = function() {
 	describe.skip( 'GET /{id}/textSheets/{fk}', function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets/1' );
 
-		helpers.testPerms( '/v1/characters/%id/textSheets/%fk', [
-			{ text: 'getting other PC without role', id: 1, fk: 1 },
-			{ text: 'getting NPC without role', id: 1, fk: 1 },
-			{ text: 'getting other PC without venue role', id: 3, fk: 1, token: 'anst' },
-			{ text: 'getting NPC without venue role', id: 3, fk: 1, token: 'anst' },
-			{ text: 'getting character not under org', id: 3, fk: 1, token: 'dst' },
-			{ text: 'getting own PC', code: 200, id: 1, fk: 1 },
-			{ text: 'getting PC with role', code: 200, id: 1, fk: 1, token: 'dst' },
-			{ text: 'getting PC with venue role', code: 200, id: 1, fk: 1, token: 'vst' },
-			{ text: 'getting NPC with role', code: 200, id: 2, fk: 1, token: 'dst' },
-			{ text: 'getting NPC with venue role', code: 200, id: 2, fk: 1, token: 'anst' },
+		helpers.testPerms( { url: '/v1/characters/%id/textSheets/%fk', verb: 'getting' }, [
+			{ text: 'other PC without role', id: 1, fk: 1 },
+			{ text: 'NPC without role', id: 1, fk: 1 },
+			{ text: 'other PC without venue role', id: 3, fk: 1, token: 'anst' },
+			{ text: 'NPC without venue role', id: 3, fk: 1, token: 'anst' },
+			{ text: 'character not under org', id: 3, fk: 1, token: 'dst' },
+			{ text: 'own PC', code: 200, id: 1, fk: 1 },
+			{ text: 'PC with role', code: 200, id: 1, fk: 1, token: 'dst' },
+			{ text: 'PC with venue role', code: 200, id: 1, fk: 1, token: 'vst' },
+			{ text: 'NPC with role', code: 200, id: 2, fk: 1, token: 'dst' },
+			{ text: 'NPC with venue role', code: 200, id: 2, fk: 1, token: 'anst' },
 		]);
 	});
 
 	describe.skip( 'GET /{id}/textSheets/count', function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets/count' );
 
-		helpers.testPerms( '/v1/characters/%id/textSheets/count', [
-			{ text: 'getting other PC without role', id: 1 },
-			{ text: 'getting NPC without role', id: 1 },
-			{ text: 'getting other PC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting NPC without venue role', id: 3, token: 'anst' },
-			{ text: 'getting character not under org', id: 3, token: 'dst' },
-			{ text: 'getting own PC', code: 200, id: 1 },
-			{ text: 'getting PC with role', code: 200, id: 1, token: 'dst' },
-			{ text: 'getting PC with venue role', code: 200, id: 1, token: 'vst' },
-			{ text: 'getting NPC with role', code: 200, id: 2, token: 'dst' },
-			{ text: 'getting NPC with venue role', code: 200, id: 2, token: 'anst' },
+		helpers.testPerms( { url: '/v1/characters/%id/textSheets/count', verb: 'getting' }, [
+			{ text: 'other PC without role', id: 1 },
+			{ text: 'NPC without role', id: 1 },
+			{ text: 'other PC without venue role', id: 3, token: 'anst' },
+			{ text: 'NPC without venue role', id: 3, token: 'anst' },
+			{ text: 'character not under org', id: 3, token: 'dst' },
+			{ text: 'own PC', code: 200, id: 1 },
+			{ text: 'PC with role', code: 200, id: 1, token: 'dst' },
+			{ text: 'PC with venue role', code: 200, id: 1, token: 'vst' },
+			{ text: 'NPC with role', code: 200, id: 2, token: 'dst' },
+			{ text: 'NPC with venue role', code: 200, id: 2, token: 'anst' },
 		]);
 	});
 
@@ -747,11 +750,11 @@ module.exports = function() {
 			{ text: 'NPC only token for PCs is provided', token: 'anst' },
 			{ text: 'PC venue role without venue set', token: 'vst' },
 			// { text: 'PC venue role with venue set', token: 'vst', filter: { where: { venue: 'cam-anarch' } }, code: 200 },
-			// { text: 'getting NPC without role', token: 'adst', filter: {where:{type:'NPC'}} },
-			{ text: 'getting NPC with role', token: 'dst', filter: {where:{type:'NPC'}}, code: 200 },
-			{ text: 'getting NPC without venue role', token: 'vst', filter: {where:{and:[{venue:'space'},{type:'NPC'}]}} },
-			{ text: 'getting venue NPC without venue filter', token: 'vst', filter: {where:{type:'NPC'}} },
-			{ text: 'getting NPC with role and filter', token: 'vst', filter: {where:{and:[{venue:'cam-anarch'},{type:'NPC'}]}} }
+			// { text: 'getting NPC without role', token: 'adst', where: {type:'NPC'} },
+			{ text: 'getting NPC with role', token: 'dst', where: {type:'NPC'}, code: 200 },
+			{ text: 'getting NPC without venue role', token: 'vst', where: {and:[{venue:'space'},{type:'NPC'}]} },
+			{ text: 'getting venue NPC without venue filter', token: 'vst', where: {type:'NPC'} },
+			{ text: 'getting NPC with role and filter', token: 'vst', where: {and:[{venue:'cam-anarch'},{type:'NPC'}]} }
 		]);
 	});
 
@@ -764,11 +767,11 @@ module.exports = function() {
 			{ text: 'NPC only token for PCs is provided', token: 'anst' },
 			{ text: 'PC venue role without venue set', token: 'vst' },
 			{ text: 'PC venue role with venue set', token: 'vst', filter: { where: { venue: 'cam-anarch' } }, code: 200 },
-			{ text: 'getting NPC without role', token: 'adst', filter: {where:{type:'NPC'}} },
-			{ text: 'getting NPC with role', token: 'dst', filter: {where:{type:'NPC'}}, code: 200 },
-			{ text: 'getting NPC without venue role', token: 'vst', filter: {where:{and:[{venue:'space'},{type:'NPC'}]}} },
-			{ text: 'getting venue NPC without venue filter', token: 'vst', filter: {where:{type:'NPC'}} },
-			{ text: 'getting NPC with role and filter', token: 'anst', filter: {where:{and:[{venue:'space'},{type:'NPC'}]}}, code: 200 }
+			{ text: 'getting NPC without role', token: 'adst', where: {type:'NPC'} },
+			{ text: 'getting NPC with role', token: 'dst', where: {type:'NPC'}, code: 200 },
+			{ text: 'getting NPC without venue role', token: 'vst', where: {and:[{venue:'space'},{type:'NPC'}]} },
+			{ text: 'getting venue NPC without venue filter', token: 'vst', where: {type:'NPC'} },
+			{ text: 'getting NPC with role and filter', token: 'anst', where: {and:[{venue:'space'},{type:'NPC'}]}, code: 200 }
 		]);
 
 		it( 'returns the correct data', function( done ) {
