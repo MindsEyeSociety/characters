@@ -177,7 +177,7 @@ function restrictBefore( ctx, instance, next ) {
 		return next( AuthError() );
 	}
 
-	getTree( ctx.req.accessToken.units )
+	Character.getTree( ctx.req.accessToken.units )
 	.then( ids => {
 		if ( true === ids ) {
 			return; // National has zero restrictions.
@@ -396,7 +396,9 @@ function restrictLinkTag( ctx, instance, next ) {
  * @return {Promise}
  */
 function checkPerms( perms, ctx, orgunit ) {
-	perms   = ctx.method.ctor.normalizePerms( perms, ctx );
+	let Character = ctx.method.ctor;
+
+	perms   = Character.normalizePerms( perms, ctx );
 	orgunit = orgunit || 1;
 
 	let units = [];
@@ -415,45 +417,11 @@ function checkPerms( perms, ctx, orgunit ) {
 		return Promise.resolve( true );
 	}
 
-	return getTree( units )
+	return Character.getTree( units )
 	.then( ids => {
 		if ( -1 !== ids.indexOf( orgunit ) ) {
 			return Promise.resolve( true );
 		}
 		return Promise.resolve( false );
 	});
-}
-
-
-/**
- * Gets an array of valid org units under a given office.
- * @param {Array} units Array of valid units to check.
- * @return {Array}
- */
-function getTree( units ) {
-
-	// Exit if it's a National officer.
-	if ( -1 !== units.indexOf( 1 ) ) {
-		return Promise.resolve( true );
-	}
-
-	const cache = require( '../helpers/cache' ).async;
-
-	const iterateTree = ( tree, id ) => {
-		if ( tree.id === id ) {
-			return gatherTree( tree );
-		}
-		for ( let child of tree.children ) {
-			let result = iterateTree( child, id );
-			if ( result ) {
-				return result;
-			}
-		}
-	};
-
-	const gatherTree = tree => [ tree.id ].concat( tree.children.map( gatherTree ) );
-
-	return cache.get( 'org-tree' )
-	.then( tree => units.map( unit => iterateTree( tree, unit ) ) )
-	.then( tree => _.flattenDeep( tree ) );
 }

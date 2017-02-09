@@ -27,6 +27,10 @@ module.exports = function( Tag ) {
 
 	Tag.beforeRemote( 'deleteById', restrictDelete );
 
+	Tag.beforeRemote( 'prototype.__get__characters', restrictCharacters );
+	Tag.afterRemote( 'prototype.__get__characters', restrictCharactersAfter );
+	Tag.beforeRemote( 'prototype.__count__characters', restrictCharacters );
+
 	/**
 	 * Removes related modification endpoints.
 	 */
@@ -151,5 +155,60 @@ function restrictDelete( ctx, instance, next ) {
 			}
 		}
 		return next( AuthError() );
+	});
+}
+
+
+/**
+ * Checks tag permissions.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictCharacters( ctx, instance, next ) {
+	let Tag = ctx.method.ctor;
+
+	Tag.bypass().findById( ctx.req.params.id )
+	.then( tag => {
+		let perm = 'PC' === tag.type ? 'character_view' : 'npc_view';
+		_.set( ctx.args, 'data', tag );
+		if ( ! Tag.checkPerms( perm, ctx.req.accessToken, ctx ) ) {
+			return next( AuthError() );
+		}
+		next();
+	})
+	.catch( err => {
+		next( err );
+	});
+}
+
+
+/**
+ * Restricts character data after retrieval.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictCharactersAfter( ctx, instance, next ) {
+	let Tag   = ctx.method.ctor;
+	let units = ctx.req.accessToken.units;
+	let chars = ctx.result;
+
+	// We should have some units.
+	if ( ! units ) {
+		return next( AuthError() );
+	}
+
+	// Exit if the array is empty, or if we're National.
+	if ( ! chars.length || -1 !== units.indexOf( 1 ) ) {
+		return next();
+	}
+
+	Tag.getTree( units )
+	.then( units => {
+		ctx.result = chars.filter( char => -1 !== units.indexOf( char.orgunit ) );
+		next();
 	});
 }

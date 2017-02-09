@@ -122,6 +122,41 @@ module.exports = function( Model ) {
 		return _.concat( perms, newPerms, 'admin' );
 	}
 
+
+	/**
+	 * Gets an array of valid org units under a given office.
+	 * @param {Array} units Array of valid units to check.
+	 * @return {Array}
+	 */
+	Model.getTree = function( units ) {
+
+		// Exit if it's a National officer.
+		if ( -1 !== units.indexOf( 1 ) ) {
+			return Promise.resolve( true );
+		}
+
+		const cache = require( '../helpers/cache' ).async;
+
+		const iterateTree = ( tree, id ) => {
+			if ( tree.id === id ) {
+				return gatherTree( tree );
+			}
+			for ( let child of tree.children ) {
+				let result = iterateTree( child, id );
+				if ( result ) {
+					return result;
+				}
+			}
+		};
+
+		const gatherTree = tree => [ tree.id ].concat( tree.children.map( gatherTree ) );
+
+		return cache.get( 'org-tree' )
+		.then( tree => units.map( unit => iterateTree( tree, unit ) ) )
+		.then( tree => _.flattenDeep( tree ) );
+	}
+
+
 	/**
 	 * Sets up a way to completely bypass permissions.
 	 * @return {Model}

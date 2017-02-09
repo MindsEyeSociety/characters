@@ -409,21 +409,75 @@ module.exports = function() {
 	describe( 'GET /{id}/characters', function() {
 		helpers.defaultTests( '/v1/tags/1/characters' );
 
-		it( 'fails without permission' );
+		helpers.testPerms( { url: '/v1/tags/%id/characters', verb: 'getting' }, [
+			{ text: 'without PC role', id: 1 },
+			{ text: 'without NPC role', id: 4 },
+			{ text: 'without PC venue role', id: 1, token: 'anst' },
+			{ text: 'without NPC venue role', id: 4, token: 'vst' },
+			{ text: 'with PC role', id: 1, token: 'dst', code: 200 },
+			{ text: 'with NPC role', id: 4, token: 'dst', code: 200 },
+			{ text: 'with PC venue role', id: 1, token: 'vst', code: 200 },
+			{ text: 'with NPC venue role', id: 4, token: 'anst', code: 200 },
+		]);
 
-		it( 'works with permission' );
+		it( 'provides PCs under org unit', function( done ) {
+			request.get( '/v1/tags/1/characters' )
+			.query({ token: 'otherDst' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				resp.body.should.be.an.Array().and.empty();
+				done();
+			});
+		});
 
-		it( 'provides only valid PCs' );
+		it( 'provides the correct data', function( done ) {
+			request.get( '/v1/tags/1/characters' )
+			.query({ token: 'nst' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				resp.body.should.be.an.Array();
+				resp.body.forEach( char => {
+					char.should.have.properties([
+						'name',
+						'userid',
+						'orgunit',
+						'source',
+						'id'
+					]);
+					char.should.have.properties({
+						type: 'PC',
+						venue: 'cam-anarch',
+						active: true
+					});
+				});
+				done();
+			});
+		})
 	});
 
 	describe( 'GET /{id}/characters/count', function() {
 		helpers.defaultTests( '/v1/tags/1/characters/count' );
 
-		it( 'fails without permission' );
+		helpers.testPerms( { url: '/v1/tags/%id/characters/count', verb: 'getting' }, [
+			{ text: 'without PC role', id: 1 },
+			{ text: 'without NPC role', id: 4 },
+			{ text: 'without PC venue role', id: 1, token: 'anst' },
+			{ text: 'without NPC venue role', id: 4, token: 'vst' },
+			{ text: 'with PC role', id: 1, token: 'dst', code: 200 },
+			{ text: 'with NPC role', id: 4, token: 'dst', code: 200 },
+			{ text: 'with PC venue role', id: 1, token: 'vst', code: 200 },
+			{ text: 'with NPC venue role', id: 4, token: 'anst', code: 200 },
+		]);
 
-		it( 'works with permission' );
-
-		it( 'provides only valid PC counts' );
+		it( 'provides the correct data', function( done ) {
+			request.get( '/v1/tags/1/characters/count' )
+			.query({ token: 'nst' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				resp.body.should.have.property( 'count', 1 );
+				done();
+			});
+		});
 	});
 
 	describe( 'GET /{id}/exists', function() {
