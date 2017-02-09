@@ -191,36 +191,18 @@ function restrictFind( ctx, instance, next ) {
 	}
 
 	// Iterate through permissions again now that we have the venue.
-	let perm = 'PC' === ctx.result.type ? 'character_view' : 'npc_view';
-	let permCtx = _.set( {}, 'args.data.venue', ctx.result.venue );
+	let perm    = 'PC' === ctx.result.type ? 'character_view' : 'npc_view';
+	let orgUnit = _.get( ctx.result, 'orgunit', 1 );
 
-	let perms = ctx.method.ctor.normalizePerms( perm, permCtx );
+	_.set( ctx, 'args.data.venue', ctx.result.venue );
 
-	let units = [];
-	let offices = ctx.args.options.offices;
-	for ( let office in offices ) {
-		if ( _.intersection( offices[ office ], perms ).length ) {
-			units.push( parseInt( office ) );
-		}
-	}
-
-	if ( ! units.length ) {
-		return next( AuthError() );
-	}
-
-	// National wins here.
-	if ( -1 !== units.indexOf( 1 ) ) {
-		return next();
-	}
-
-	let id = _.get( ctx.result, 'orgunit', 1 );
-
-	getTree( units )
-	.then( ids => {
-		if ( -1 !== ids.indexOf( id ) ) {
+	checkPerms( perm, ctx, orgUnit )
+	.then( result => {
+		if ( ! result ) {
+			return next( AuthError() );
+		} else {
 			return next();
 		}
-		return next( AuthError() );
 	});
 }
 
@@ -270,31 +252,13 @@ function restrictUpdate( ctx, instance, next ) {
 		if ( 'NPC' === char.type ) {
 			perm = 'npc_edit';
 		}
-		let perms = ctx.method.ctor.normalizePerms( perm, ctx );
-
-		let units = [];
-		let offices = user.offices;
-		for ( let office in offices ) {
-			if ( _.intersection( offices[ office ], perms ).length ) {
-				units.push( parseInt( office ) );
-			}
-		}
-
-		if ( ! units.length ) {
-			return next( AuthError() );
-		}
-
-		// National wins here.
-		if ( -1 !== units.indexOf( 1 ) ) {
-			return next();
-		}
-
-		getTree( units )
-		.then( ids => {
-			if ( -1 !== ids.indexOf( char.orgunit ) ) {
+		checkPerms( perm, ctx, char.orgunit )
+		.then( result => {
+			if ( ! result ) {
+				return next( AuthError() );
+			} else {
 				return next();
 			}
-			return next( AuthError() );
 		});
 	});
 }
@@ -324,32 +288,52 @@ function restrictDelete( ctx, instance, next ) {
 			perm = 'npc_edit';
 		}
 		_.set( ctx, 'args.data.venue', char.venue );
-		let perms = ctx.method.ctor.normalizePerms( perm, ctx );
 
-		let units = [];
-		let offices = user.offices;
-		for ( let office in offices ) {
-			if ( _.intersection( offices[ office ], perms ).length ) {
-				units.push( parseInt( office ) );
-			}
-		}
-
-		if ( ! units.length ) {
-			return next( AuthError() );
-		}
-
-		// National wins here.
-		if ( -1 !== units.indexOf( 1 ) ) {
-			return next();
-		}
-
-		getTree( units )
-		.then( ids => {
-			if ( -1 !== ids.indexOf( char.orgunit ) ) {
+		checkPerms( perm, ctx, char.orgunit )
+		.then( result => {
+			if ( ! result ) {
+				return next( AuthError() );
+			} else {
 				return next();
 			}
-			return next( AuthError() );
 		});
+	});
+}
+
+
+/**
+ * Checks permissions for entire tree.
+ * @param {Array|String} perms Permission(s) to check.
+ * @param {Object} ctx         Loopback context object.
+ * @param {Number} orgunit     ID of valid org unit.
+ * @return {Promise}
+ */
+function checkPerms( perms, ctx, orgunit ) {
+	perms   = ctx.method.ctor.normalizePerms( perms, ctx );
+	orgunit = orgunit || 1;
+
+	let units = [];
+	let offices = ctx.args.options.offices;
+	for ( let office in ctx.args.options.offices ) {
+		if ( _.intersection( offices[ office ], perms ).length ) {
+			units.push( parseInt( office ) );
+		}
+	}
+
+	if ( ! units.length ) {
+		return Promise.resolve( false );
+	}
+
+	if ( -1 !== units.indexOf( 1 ) ) {
+		return Promise.resolve( true );
+	}
+
+	return getTree( units )
+	.then( ids => {
+		if ( -1 !== ids.indexOf( orgunit ) ) {
+			return Promise.resolve( true );
+		}
+		return Promise.resolve( false );
 	});
 }
 
