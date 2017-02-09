@@ -16,6 +16,9 @@ module.exports = function( Character ) {
 	Character.beforeRemote( 'replaceById', restrictUpdate );
 	Character.beforeRemote( 'deleteById', restrictDelete );
 
+	Character.beforeRemote( 'prototype.__get__tags', restrictTags );
+	Character.beforeRemote( 'prototype.__count__tags', restrictTags );
+
 	/**
 	 * Sets up validation.
 	 */
@@ -203,7 +206,8 @@ function restrictFind( ctx, instance, next ) {
 		} else {
 			return next();
 		}
-	});
+	})
+	.catch( err => next( err ) );
 }
 
 
@@ -252,7 +256,7 @@ function restrictUpdate( ctx, instance, next ) {
 		if ( 'NPC' === char.type ) {
 			perm = 'npc_edit';
 		}
-		checkPerms( perm, ctx, char.orgunit )
+		return checkPerms( perm, ctx, char.orgunit )
 		.then( result => {
 			if ( ! result ) {
 				return next( AuthError() );
@@ -260,7 +264,8 @@ function restrictUpdate( ctx, instance, next ) {
 				return next();
 			}
 		});
-	});
+	})
+	.catch( err => next( err ) );
 }
 
 
@@ -289,7 +294,7 @@ function restrictDelete( ctx, instance, next ) {
 		}
 		_.set( ctx, 'args.data.venue', char.venue );
 
-		checkPerms( perm, ctx, char.orgunit )
+		return checkPerms( perm, ctx, char.orgunit )
 		.then( result => {
 			if ( ! result ) {
 				return next( AuthError() );
@@ -297,7 +302,42 @@ function restrictDelete( ctx, instance, next ) {
 				return next();
 			}
 		});
-	});
+	})
+	.catch( err => next( err ) );
+}
+
+
+/**
+ * Restricts access to tags of a given character.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictTags( ctx, instance, next ) {
+	let Character = ctx.method.ctor;
+
+	Character.bypass().findById( ctx.req.params.id )
+	.then( char => {
+
+		// Users can delete their own character.
+		if ( ctx.args.options.currentUserId === char.userid ) {
+			return next();
+		}
+
+		let perm = 'PC' === char.type ? 'character_view' : 'npc_view';
+		_.set( ctx, 'args.data.venue', char.venue );
+
+		return checkPerms( perm, ctx, char.orgunit )
+		.then( result => {
+			if ( ! result ) {
+				return next( AuthError() );
+			} else {
+				return next();
+			}
+		});
+	})
+	.catch( err => next( err ) );
 }
 
 

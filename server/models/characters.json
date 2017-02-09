@@ -149,7 +149,11 @@
 		"WRITE": [ "character_edit", "npc_edit", "$self" ],
 		"findById": [ "character_view", "npc_view", "$self" ],
 		"create": [ "character_edit", "npc_edit", "$self" ],
+		"replaceById": "*",
+		"deleteById": "*",
 		"exists": "*",
-		"me": "*"
+		"me": "*",
+		"__get__tags": "*",
+		"__count__tags": "*"
 	}
 }

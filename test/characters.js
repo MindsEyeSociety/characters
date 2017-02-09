@@ -477,16 +477,16 @@ module.exports = function() {
 		helpers.defaultTests( '/v1/characters/1/tags' );
 
 		helpers.testPerms( '/v1/characters/%id/tags', [
-			// { text: 'getting other PC without permission', id: 3 },
+			{ text: 'getting other PC without permission', id: 3 },
 			{ text: 'getting NPC without permission', id: 2 },
 			{ text: 'getting other PC without venue permission', id: 3, token: 'anst' },
 			{ text: 'getting NPC without venue permission', id: 3, token: 'anst' },
-			// { text: 'getting character not under org', id: 3, token: 'dst' },
-			// { text: 'getting own PC', code: 200, id: 1 },
+			{ text: 'getting character not under org', id: 3, token: 'dst' },
+			{ text: 'getting own PC', code: 200, id: 1 },
 			{ text: 'getting PC with permission', code: 200, id: 1, token: 'dst' },
-			// { text: 'getting PC with venue permission', code: 200, id: 1, token: 'vst' },
+			{ text: 'getting PC with venue permission', code: 200, id: 1, token: 'vst' },
 			{ text: 'getting NPC with permission', code: 200, id: 2, token: 'dst' },
-			// { text: 'getting NPC with venue permission', code: 200, id: 2, token: 'anst' },
+			{ text: 'getting NPC with venue permission', code: 200, id: 2, token: 'anst' },
 		]);
 
 		it( 'returns the correct data', function( done ) {
@@ -506,7 +506,7 @@ module.exports = function() {
 		});
 	});
 
-	describe.skip( 'GET /{id}/tags/count', function() {
+	describe( 'GET /{id}/tags/count', function() {
 		helpers.defaultTests( '/v1/characters/1/tags/count' );
 
 		helpers.testPerms( '/v1/characters/%id/tags/count', [
