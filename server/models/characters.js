@@ -23,6 +23,8 @@ module.exports = function( Character ) {
 	Character.beforeRemote( 'prototype.__unlink__tags', restrictRelated );
 
 	Character.beforeRemote( 'prototype.__get__textSheets', restrictRelated );
+	Character.beforeRemote( 'prototype.__findById__textSheets', restrictRelated );
+	Character.beforeRemote( 'prototype.__count__textSheets', restrictRelated );
 	Character.beforeRemote( 'prototype.__created__textSheets', restrictRelated );
 
 	/**

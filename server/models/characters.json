@@ -158,6 +158,8 @@
 		"__link__tags": "*",
 		"__unlink__tags": "*",
 		"__get__textSheets": "*",
+		"__findById__textSheets": "*",
+		"__count__textSheets": "*",
 		"__created__textSheets": "*"
 	}
 }

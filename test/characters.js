@@ -705,29 +705,29 @@ module.exports = function() {
 		});
 	});
 
-	describe.skip( 'GET /{id}/textSheets/{fk}', function() {
+	describe( 'GET /{id}/textSheets/{fk}', function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets/1' );
 
 		helpers.testPerms( { url: '/v1/characters/%id/textSheets/%fk', verb: 'getting' }, [
-			{ text: 'other PC without role', id: 1, fk: 1 },
-			{ text: 'NPC without role', id: 1, fk: 1 },
+			{ text: 'other PC without role', id: 1, fk: 1, token: 'user2' },
+			{ text: 'NPC without role', id: 2, fk: 1 },
 			{ text: 'other PC without venue role', id: 3, fk: 1, token: 'anst' },
-			{ text: 'NPC without venue role', id: 3, fk: 1, token: 'anst' },
-			{ text: 'character not under org', id: 3, fk: 1, token: 'dst' },
+			{ text: 'NPC without venue role', id: 2, fk: 3, token: 'vst' },
+			{ text: 'character not under org', id: 3, fk: 4, token: 'dst' },
 			{ text: 'own PC', code: 200, id: 1, fk: 1 },
 			{ text: 'PC with role', code: 200, id: 1, fk: 1, token: 'dst' },
 			{ text: 'PC with venue role', code: 200, id: 1, fk: 1, token: 'vst' },
-			{ text: 'NPC with role', code: 200, id: 2, fk: 1, token: 'dst' },
-			{ text: 'NPC with venue role', code: 200, id: 2, fk: 1, token: 'anst' },
+			{ text: 'NPC with role', code: 200, id: 2, fk: 3, token: 'dst' },
+			{ text: 'NPC with venue role', code: 200, id: 2, fk: 3, token: 'anst' },
 		]);
 	});
 
-	describe.skip( 'GET /{id}/textSheets/count', function() {
+	describe( 'GET /{id}/textSheets/count', function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets/count' );
 
 		helpers.testPerms( { url: '/v1/characters/%id/textSheets/count', verb: 'getting' }, [
-			{ text: 'other PC without role', id: 1 },
-			{ text: 'NPC without role', id: 1 },
+			{ text: 'other PC without role', id: 1, token: 'user2' },
+			{ text: 'NPC without role', id: 2 },
 			{ text: 'other PC without venue role', id: 3, token: 'anst' },
 			{ text: 'NPC without venue role', id: 3, token: 'anst' },
 			{ text: 'character not under org', id: 3, token: 'dst' },
