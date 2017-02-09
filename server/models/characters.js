@@ -13,6 +13,7 @@ module.exports = function( Character ) {
 
 	Character.afterRemote( 'findById', restrictFind );
 
+	Character.beforeRemote( 'create', restrictCreate );
 	Character.beforeRemote( 'replaceById', restrictUpdate );
 	Character.beforeRemote( 'deleteById', restrictDelete );
 
@@ -95,16 +96,6 @@ module.exports = function( Character ) {
 	/**
 	 * Overrides default remote methods.
 	 */
-
-	// Validates creation of new objects.
-	Character.beforeRemote( 'create', ( ctx, instance, next ) => {
-		if ( _.has( ctx.args.data, 'id' ) ) {
-			return next( RequestError( 'Cannot update model' ) );
-		} else if ( 'NPC' === ctx.args.data.type && ctx.args.data.userid ) {
-			return next( RequestError( 'NPCs cannot have users' ) );
-		}
-		next();
-	});
 
 	// Sets default scope of single character.
 	Character.beforeRemote( 'findById', ( ctx, instance, next ) => {
@@ -216,6 +207,45 @@ function restrictFind( ctx, instance, next ) {
 	_.set( ctx, 'args.data.venue', ctx.result.venue );
 
 	checkPerms( perm, ctx, orgUnit )
+	.then( result => {
+		if ( ! result ) {
+			return next( AuthError() );
+		} else {
+			return next();
+		}
+	})
+	.catch( err => next( err ) );
+}
+
+
+/**
+ * Restricts before creating a character.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictCreate( ctx, instance, next ) {
+	let data = ctx.args.data;
+
+	if ( data.id ) {
+		return next( RequestError() );
+	}
+
+	if ( 'PC' === data.type ) {
+		if ( ! data.userid ) {
+			return next( RequestError( 'PCs must have an associated user' ) );
+		} else if ( ctx.args.options.currentUserId !== data.userid ) {
+			return next( RequestError( 'PCs can only be created for the current user' ) );
+		}
+		return next();
+	}
+
+	if ( 'NPC' === data.type && data.userid ) {
+		return next( RequestError( 'NPCs cannot have users' ) );
+	}
+
+	checkPerms( 'npc_edit', ctx, data.orgunit )
 	.then( result => {
 		if ( ! result ) {
 			return next( AuthError() );

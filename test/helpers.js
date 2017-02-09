@@ -82,7 +82,10 @@ function testPerms( url, tests, method = 'get' ) {
 }
 
 function cloneWith( obj, key, value ) {
-	return _.set( _.clone( obj ), key, value );
+	if ( ! _.isPlainObject( key ) ) {
+		key = { [ key ]: value };
+	}
+	return Object.assign( {}, obj, key );
 }
 
 module.exports = {

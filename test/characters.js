@@ -191,43 +191,38 @@ module.exports = function() {
 		});
 
 		let body = {
-			userid: 11,
+			userid: 1,
 			orgunit: 4,
 			name: 'Test',
 			type: 'PC',
 			venue: 'cam-anarch'
 		};
+		let npc = clone( body, { userid: null, type: 'NPC' } );
 
 		helpers.testPerms( { url: '/v1/characters', verb: 'creating', method: 'post' }, [
-			{ text: 'without correct role', body, token: 'adst' },
-			{ text: 'with correct role', body, token: 'nst', code: 200 },
-			{ text: 'for self', body: clone( body, 'userid', 1 ), code: 200 },
-			{ text: 'with id set', body: clone( body, 'id', 1 ), token: 'nst', code: 400 },
-			{ text: 'without attributes', body: {}, token: 'nst', code: 422 },
-			{ text: 'without correct venue role', body, token: 'anst' },
-			{ text: 'with correct venue role', body: clone( body, 'venue', 'space' ), token: 'anst', code: 200 }
+			{ text: 'PC not for self', body, token: 'nst', code: 400 },
+			{ text: 'PC with id set', body: clone( body, 'id', 1 ), code: 400 },
+			{ text: 'PC for self', body, code: 200 },
+			{ text: 'NPC without role', body: npc, token: 'adst' },
+			{ text: 'NPC without venue role', body: npc, token: 'anst' },
+			{ text: 'NPC outside of domain', body: npc, token: 'otherDst' },
+			{ text: 'NPC with user ID', body: clone( npc, 'userid', 1 ), token: 'nst', code: 400 },
+			{ text: 'NPC with role', body: npc, token: 'nst', code: 200 },
+			{ text: 'NPC with venue role', body: npc, token: 'vst', code: 200 },
+			{ text: 'without attributes', body: {}, token: 'admin', code: 422 },
+			{ text: 'with invalid type attribute', body: clone( body, 'type', 'test' ), token: 'admin', code: 422 }
 		]);
-
-		it( 'fails for creating NPC for self', function( done ) {
-			let char = Object.assign( {}, body );
-			char.userid = 1;
-			char.type = 'NPC';
-
-			request.post( '/v1/characters' )
-			.query({ token: 'user1' })
-			.send( char )
-			.expect( 400, done );
-		});
 
 		it( 'provides correct data', function( done ) {
 			request.post( '/v1/characters' )
 			.query({ token: 'user1' })
-			.send( clone( body, 'userid', 1 ) )
+			.send( body )
 			.expect( 200 )
 			.end( ( err, resp ) => {
 				if ( err ) {
 					done( err );
 				}
+				resp.body.should.have.properties( body );
 				resp.body.should.have.property( 'id' );
 				done();
 			});

@@ -16,7 +16,7 @@ const responses = {
 		'anst': [{ parentOrgID: 1, roles: [ 'character_edit_space', 'character_tag_edit_space', 'character_tag_delete_space', 'npc_view_space', 'npc_edit_space', 'character_view_space' ] }],
 		'dst': [{ parentOrgID: 3, roles: [ 'character_edit', 'character_view', 'npc_view', 'npc_edit' ] }],
 		'adst': [{ parentOrgID: 3, roles: [ 'character_view' ] }],
-		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch', 'npc_update_cam-anarch', 'character_view_cam-anarch', 'character_edit_cam-anarch' ] }],
+		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch', 'npc_edit_cam-anarch', 'character_view_cam-anarch', 'character_edit_cam-anarch' ] }],
 		'avst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch' ] }],
 		'otherDst': [{ parentOrgID: 6, roles: [ 'character_edit', 'character_view', 'npc_view', 'npc_edit' ] }],
 		'admin': [{ parentOrgID: 1, roles: [ 'admin' ] }],
