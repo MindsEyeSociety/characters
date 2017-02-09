@@ -25,7 +25,7 @@ module.exports = function( Character ) {
 	Character.beforeRemote( 'prototype.__get__textSheets', restrictRelated );
 	Character.beforeRemote( 'prototype.__findById__textSheets', restrictRelated );
 	Character.beforeRemote( 'prototype.__count__textSheets', restrictRelated );
-	Character.beforeRemote( 'prototype.__created__textSheets', restrictRelated );
+	Character.beforeRemote( 'prototype.__create__textSheets', restrictRelated );
 
 	/**
 	 * Sets up validation.
@@ -113,6 +113,14 @@ module.exports = function( Character ) {
 				{ relation: 'textSheets', scope: { order: 'modifiedat DESC', limit: 1 } }
 			] );
 		}
+		next();
+	});
+
+	// Auto-populates modified data for new sheets.
+	Character.beforeRemote( 'prototype.__create__textSheets', ( ctx, instance, next ) => {
+		_.set( ctx.args.data, 'modifiedby', ctx.args.options.currentUserId );
+		_.unset( ctx.args.data, 'character' );
+		_.unset( ctx.args.data, 'modifiedat' );
 		next();
 	});
 
@@ -336,7 +344,12 @@ function restrictRelated( ctx, instance, next ) {
 			return next();
 		}
 
-		let perm = 'PC' === char.type ? 'character_view' : 'npc_view';
+		let perm = 'PC' === char.type ? 'character_' : 'npc_';
+		if ( '__create__textSheets' === ctx.method.name ) {
+			perm += 'edit';
+		} else {
+			perm += 'view';
+		}
 		_.set( ctx, 'args.data.venue', char.venue );
 
 		return checkPerms( perm, ctx, char.orgunit )

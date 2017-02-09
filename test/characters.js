@@ -644,7 +644,7 @@ module.exports = function() {
 		]);
 	});
 
-	describe.skip( 'POST /{id}/textSheets', function() {
+	describe( 'POST /{id}/textSheets', function() {
 		helpers.defaultTests( '/v1/characters/1/textSheets', 'post' );
 
 		afterEach( 'resets test data', function( done ) {
@@ -666,7 +666,7 @@ module.exports = function() {
 				{ text: 'NPC without role', id: 2, body },
 				{ text: 'other PC without venue role', id: 3, token: 'anst', body },
 				{ text: 'NPC without venue role', id: 3, token: 'anst', body },
-				{ text: 'character not under org', id: 3, token: 'dst', body },
+				{ text: 'NPC not under org', id: 3, token: 'dst', body },
 				{ text: 'own PC', code: 200, id: 1, body },
 				{ text: 'PC with role', code: 200, id: 1, token: 'dst', body },
 				{ text: 'PC with venue role', code: 200, id: 1, token: 'vst', body },
