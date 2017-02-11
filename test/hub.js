@@ -55,6 +55,20 @@ module.exports = function( url, token ) {
 		return tree;
 	}
 
+	if ( '/office/me' === url && '_' === token.substr( 0, 1 ) ) {
+		let org = 1;
+		let role = '';
+		if ( '_' === token.substr( -2, 1 ) ) {
+			org = parseInt( token.substr( -1 ) );
+			role = token.substring( 1, token.length - 2 );
+		} else {
+			role = token.substring( 1, token.length );
+		}
+		let resp = [{ parentOrgID: org, roles: [ role ] }];
+		debug( 'Returning ' + inspect( resp ) );
+		return resp;
+	}
+
 	if ( responses[ url ] ) {
 		let resp = _.get( responses, `${url}.${token}`, responses[ url ].default );
 

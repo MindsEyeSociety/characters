@@ -16,6 +16,7 @@ module.exports = function( Character ) {
 	Character.beforeRemote( 'create', restrictCreate );
 	Character.beforeRemote( 'replaceById', restrictUpdate );
 	Character.beforeRemote( 'deleteById', restrictDelete );
+	Character.beforeRemote( 'move', restrictMove );
 
 	Character.beforeRemote( 'prototype.__get__tags', restrictRelated );
 	Character.beforeRemote( 'prototype.__count__tags', restrictRelated );
@@ -54,7 +55,7 @@ module.exports = function( Character ) {
 
 		if ( -1 !== perms.indexOf( '$self' ) ) {
 			let method = ctx.method.name;
-			if ( 'replaceById' === method || 'deleteById' === method ) {
+			if ( 'replaceById' === method || 'deleteById' === method || 'move' === method ) {
 				return true;
 			} else if (
 				'findById' === method ||
@@ -80,8 +81,8 @@ module.exports = function( Character ) {
 		Character.find( filter, cb );
 	};
 
-	Character.remoteMethod(
-		'me', {
+	Character.remoteMethod( 'me',
+		{
 			http: { path: '/me', verb: 'get' },
 			description: 'Returns array of characters of current user.',
 			accessType: 'READ',
@@ -92,6 +93,34 @@ module.exports = function( Character ) {
 			returns: { arg: 'data', type: [ Character.modelName ], root: true }
 		}
 	);
+
+	/**
+	 * Moves a character's attached org unit.
+	 * @param {Number}   id      Model id.
+	 * @param {Number}   orgunit Org unit id.
+	 * @param {Object}   options Loopback options object.
+	 * @param {Function} cb      Callback.
+	 * @return {void}
+	 */
+	Character.move = ( id, orgunit, options, cb ) => {
+		Character.findById( id )
+		.then( char => char.updateAttribute( 'orgunit', orgunit, cb ) )
+		.catch( err => cb( err ) );
+	}
+
+	Character.remoteMethod( 'move',
+		{
+			http: { path: '/:id/move/:orgunit', verb: 'put' },
+			description: 'Moves a character to a new org unit.',
+			accessType: 'WRITE',
+			accepts: [
+				{ arg: 'id', type: 'string', description: 'Model id', required: true, http: { source: 'path' } },
+				{ arg: 'orgunit', type: 'string', description: 'Org unit id', required: true, http: { source: 'path' } },
+				{ arg: 'options', type: 'object', http: 'optionsFromRequest' }
+			],
+			returns: { arg: 'data', type: Character.modelName, root: true }
+		}
+	)
 
 	/**
 	 * Overrides default remote methods.
@@ -354,6 +383,49 @@ function restrictDelete( ctx, instance, next ) {
 
 
 /**
+ * Restricts moving a given character.
+ * @param {Object}   ctx      Loopback context object.
+ * @param {Object}   instance The instance object.
+ * @param {Function} next     Callback.
+ * @return {void}
+ */
+function restrictMove( ctx, instance, next ) {
+	let Character = ctx.method.ctor;
+
+	Character.bypass().findById( ctx.args.id )
+	.then( char => {
+		if ( ! char ) {
+			let err = new Error( `Unknown "Characters" id "${ctx.args.id}".` );
+			err.statusCode = err.status = 404;
+			err.code = 'MODEL_NOT_FOUND';
+			return next( err );
+		}
+
+		if ( char.orgunit === parseInt( ctx.args.orgunit ) ) {
+			return next( RequestError() );
+		}
+
+		_.set( ctx, 'args.data.venue', char.venue );
+		let perm = 'PC' === char.type ? 'character_edit' : 'npc_edit';
+		const Promise = require( 'bluebird' );
+		return Promise.join(
+			checkPerms( perm, ctx, char.orgunit ),
+			checkPerms( perm, ctx, ctx.args.orgunit ),
+			( char, orgunit ) => char && orgunit
+		)
+		.then( allowed => {
+			if ( ! allowed ) {
+				return next( AuthError() );
+			} else {
+				return next();
+			}
+		})
+	})
+	.catch( err => next( err ) );
+}
+
+
+/**
  * Restricts access to tags of a given character.
  * @param {Object}   ctx      Loopback context object.
  * @param {Object}   instance The instance object.
@@ -406,7 +478,7 @@ function restrictLinkTag( ctx, instance, next ) {
 				statusCode: 404,
 				message: 'Tag not found',
 				code: 'MODEL_NOT_FOUND'
-			})
+			});
 		}
 
 		if ( char.venue !== tag.venue || char.type !== tag.type ) {

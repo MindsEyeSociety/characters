@@ -153,6 +153,7 @@
 		"deleteById": "*",
 		"exists": "*",
 		"me": "*",
+		"move": "*",
 		"__get__tags": "*",
 		"__count__tags": "*",
 		"__link__tags": "*",

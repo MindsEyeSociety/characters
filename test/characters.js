@@ -907,6 +907,55 @@ module.exports = function() {
 		});
 	});
 
+	describe( 'PUT /{id}/move/{org}', function() {
+		helpers.defaultTests( '/v1/characters/1/move/6', 'put' );
+
+		afterEach( 'reset data', function( done ) {
+			Promise.join(
+				Character.findById( 1 ).then( char => char.updateAttribute( 'orgunit', 4 )),
+				Character.findById( 2 ).then( char => char.updateAttribute( 'orgunit', 4 )),
+				Character.findById( 3 ).then( char => char.updateAttribute( 'orgunit', 2 )),
+				() => done()
+			)
+			.catch( err => done( err ) );
+		});
+
+		helpers.testPerms(
+			{ url: '/v1/characters/%id/move/%fk', method: 'put', verb: 'moving' },
+			[
+				{ text: 'PC for self', id: 1, fk: 6 },
+				{ text: 'PC without role', id: 3, fk: 6 },
+				{ text: 'PC without venue role', id: 3, fk: 6, token: 'anst' },
+				{ text: 'PC with role', id: 1, fk: 6, token: 'nst', code: 200 },
+				{ text: 'PC with venue role', id: 3, fk: 6, token: '_character_edit_apoc', code: 200 },
+				{ text: 'NPC without role', id: 2, fk: 6 },
+				{ text: 'NPC without venue role', id: 2, fk: 6, token: '_npc_edit_apoc' },
+				{ text: 'NPC with role', id: 2, fk: 6, token: 'nst', code: 200 },
+				{ text: 'NPC with venue role', id: 2, fk: 6, token: 'anst', code: 200 },
+				{ text: 'character to outside org unit', id: 1, fk: 6, token: 'dst' },
+				{ text: 'character to same unit', id: 1, fk: 4, token: 'nst', code: 400 },
+				{ text: 'character does not exist', id: 10, fk: 4, token: 'nst', code: 404 },
+			]
+		);
+
+		it( 'sets the correct org unit', function( done ) {
+			request.put( '/v1/characters/1/move/6' )
+			.query({ token: 'nst' })
+			.expect( 200 )
+			.end( ( err, resp ) => {
+				if ( err ) {
+					return done( err );
+				}
+				resp.body.should.have.property( 'orgunit', 6 );
+				Character.findById( 1 )
+				.then( char => {
+					char.should.have.property( 'orgunit', 6 );
+					done();
+				});
+			});
+		});
+	});
+
 	describe( 'Verify disabled endpoints', function() {
 		let endpoints = [
 			[ 'patch', '/' ],
