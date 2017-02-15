@@ -1,6 +1,6 @@
 {
 	"mysql": {
 		"connector": "memory",
-		"url": "",
+		"url": ""
 	}
 }
