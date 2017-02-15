@@ -12,33 +12,16 @@ const responses = {
 		'invalid': false
 	},
 	'/office/me': {
-		'nst': [{ parentOrgID: 1, roles: [ 'character_edit', 'character_tag_edit', 'character_tag_delete', 'npc_view', 'npc_edit', 'character_view' ] }],
-		'anst': [{ parentOrgID: 1, roles: [ 'character_edit_space', 'character_tag_edit_space', 'character_tag_delete_space', 'npc_view_space', 'npc_edit_space', 'character_view_space' ] }],
-		'dst': [{ parentOrgID: 3, roles: [ 'character_edit', 'character_view', 'npc_view', 'npc_edit' ] }],
-		'adst': [{ parentOrgID: 3, roles: [ 'character_view' ] }],
-		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch', 'npc_edit_cam-anarch', 'character_view_cam-anarch', 'character_edit_cam-anarch' ] }],
-		'avst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch' ] }],
-		'otherDst': [{ parentOrgID: 6, roles: [ 'character_edit', 'character_view', 'npc_view', 'npc_edit' ] }],
-		'admin': [{ parentOrgID: 1, roles: [ 'admin' ] }],
+		'nst': [{ parentOrgID: 1, roles: [ 'character_edit', 'character_tag_edit', 'character_tag_delete', 'npc_view', 'npc_edit', 'character_view' ], childrenOrgs: child( 1 ) }],
+		'anst': [{ parentOrgID: 1, roles: [ 'character_edit_space', 'character_tag_edit_space', 'character_tag_delete_space', 'npc_view_space', 'npc_edit_space', 'character_view_space' ], childrenOrgs: child( 1 ) }],
+		'dst': [{ parentOrgID: 3, roles: [ 'character_edit', 'character_view', 'npc_view', 'npc_edit' ], childrenOrgs: child( 3 ) }],
+		'adst': [{ parentOrgID: 3, roles: [ 'character_view' ], childrenOrgs: child( 3 ) }],
+		'vst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch', 'npc_edit_cam-anarch', 'character_view_cam-anarch', 'character_edit_cam-anarch' ], childrenOrgs: child( 4 ) }],
+		'avst': [{ parentOrgID: 4, roles: [ 'npc_view_cam-anarch' ], childrenOrgs: child( 4 ) }],
+		'otherDst': [{ parentOrgID: 6, roles: [ 'character_edit', 'character_view', 'npc_view', 'npc_edit' ], childrenOrgs: child( 6 ) }],
+		'admin': [{ parentOrgID: 1, roles: [ 'admin' ], childrenOrgs: child( 1 ) }],
 		'default': []
 	}
-};
-
-const tree = {
-	id: 1,
-	children: [
-		{
-			id: 2,
-			children: [
-				{
-					id: 3,
-					children: [{ id: 4, children: [] }]
-				},
-				{ id: 5, children: [] }
-			]
-		},
-		{ id: 6, children: [] }
-	]
 };
 
 /**
@@ -50,10 +33,6 @@ const tree = {
 module.exports = function( url, token ) {
 
 	debug( `Got request ${url} with token ${token}` );
-
-	if ( 'tree' === url ) {
-		return tree;
-	}
 
 	if ( '/office/me' === url && '_' === token.substr( 0, 1 ) ) {
 		let org = 1;
@@ -81,4 +60,23 @@ module.exports = function( url, token ) {
 		}
 	}
 	return {};
+}
+
+
+/**
+ * Helper function to return array of units under org tree.
+ * @param {Number} parent ID of parent org unit.
+ * @return {Array}
+ */
+function child( parent ) {
+	switch ( parent ) {
+		case 1:
+			return [ 2, 3, 4, 5, 6 ];
+		case 2:
+			return [ 3, 4, 5 ]
+		case 3:
+			return [ 4 ];
+		default:
+			return [];
+	}
 }

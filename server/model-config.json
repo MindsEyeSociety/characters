@@ -23,10 +23,6 @@
 		"dataSource": "mysql",
 		"public": false
 	},
-	"Tokens": {
-		"dataSource": null,
-		"public": false
-	},
 	"Venues": {
 		"dataSource": null,
 		"public": true

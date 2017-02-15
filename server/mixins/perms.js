@@ -80,16 +80,11 @@ module.exports = function( Model ) {
 
 		perms = Model.normalizePerms( perms, ctx );
 
-		let units = [];
-		for ( let office in token.offices ) {
-			if ( _.intersection( token.offices[ office ], perms ).length ) {
-				units.push( parseInt( office ) );
-			}
-		}
+		let offices = Model.findValidOffices( perms, token.offices );
 
-		token.units = units;
+		token.units = Model.getUnitsFromOffices( offices );
 
-		return !! units.length;
+		return !! offices.length;
 	}
 
 
@@ -124,36 +119,41 @@ module.exports = function( Model ) {
 
 
 	/**
-	 * Gets an array of valid org units under a given office.
-	 * @param {Array} units Array of valid units to check.
+	 * Filters list of offices for valid office to check.
+	 * @param {Array}  perms       Array of permissions.
+	 * @param {Array}  offices     Array of office objects.
+	 * @param {Number} [orgunit=0] Optional ID of org unit to check.
 	 * @return {Array}
 	 */
-	Model.getTree = function( units ) {
-
-		// Exit if it's a National officer.
-		if ( -1 !== units.indexOf( 1 ) ) {
-			return Promise.resolve( true );
-		}
-
-		const cache = require( '../helpers/cache' ).async;
-
-		const iterateTree = ( tree, id ) => {
-			if ( tree.id === id ) {
-				return gatherTree( tree );
-			}
-			for ( let child of tree.children ) {
-				let result = iterateTree( child, id );
-				if ( result ) {
-					return result;
+	Model.findValidOffices = ( perms, offices, orgunit = 0 ) => {
+		return offices.filter( office => {
+			if ( _.intersection( perms, office.roles ).length ) {
+				if (
+					orgunit &&
+					( office.parentOrgID === orgunit ||
+					-1 !== office.childrenOrgs.indexOf( orgunit ) )
+				) {
+					return true;
+				} else {
+					return true;
 				}
+				return false;
 			}
-		};
+		});
+	}
 
-		const gatherTree = tree => [ tree.id ].concat( tree.children.map( gatherTree ) );
 
-		return cache.get( 'org-tree' )
-		.then( tree => units.map( unit => iterateTree( tree, unit ) ) )
-		.then( tree => _.flattenDeep( tree ) );
+	/**
+	 * Produces a list of org units under an array of offices.
+	 * @param {Array} offices Array of offices.
+	 * @return {Array}
+	 */
+	Model.getUnitsFromOffices = offices => {
+		return _( offices )
+		.map( o => _.concat( o.childrenOrgs, o.parentOrgID ) )
+		.flatten()
+		.uniq()
+		.value();
 	}
 
 

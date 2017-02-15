@@ -197,19 +197,14 @@ function restrictBefore( ctx, instance, next ) {
 		return next( AuthError() );
 	}
 
-	Character.getTree( ctx.req.accessToken.units )
-	.then( ids => {
-		if ( true === ids ) {
-			return; // National has zero restrictions.
-		}
+	let units = ctx.req.accessToken.units;
 
-		// Sets the org units allowed.
-		queries.addWhere( ctx, { orgunit: { inq: ids } } );
+	if ( -1 === units.indexOf( 1 ) ) {
+		queries.addWhere( ctx, { orgunit: { inq: units } } );
+	}
 
-	}).then( () => {
-		queries.restoreWhere( ctx.args );
-		next();
-	});
+	queries.restoreWhere( ctx.args );
+	next();
 }
 
 /**
@@ -235,15 +230,10 @@ function restrictFind( ctx, instance, next ) {
 
 	_.set( ctx, 'args.data.venue', ctx.result.venue );
 
-	checkPerms( perm, ctx, orgUnit )
-	.then( result => {
-		if ( ! result ) {
-			return next( AuthError() );
-		} else {
-			return next();
-		}
-	})
-	.catch( err => next( err ) );
+	if ( checkPerms( perm, ctx, orgUnit ) ) {
+		return next();
+	}
+	return next( AuthError() );
 }
 
 
@@ -274,15 +264,10 @@ function restrictCreate( ctx, instance, next ) {
 		return next( RequestError( 'NPCs cannot have users' ) );
 	}
 
-	checkPerms( 'npc_edit', ctx, data.orgunit )
-	.then( result => {
-		if ( ! result ) {
-			return next( AuthError() );
-		} else {
-			return next();
-		}
-	})
-	.catch( err => next( err ) );
+	if ( checkPerms( 'npc_edit', ctx, data.orgunit ) ) {
+		return next();
+	}
+	return next( AuthError() );
 }
 
 
@@ -331,14 +316,11 @@ function restrictUpdate( ctx, instance, next ) {
 		if ( 'NPC' === char.type ) {
 			perm = 'npc_edit';
 		}
-		return checkPerms( perm, ctx, char.orgunit )
-		.then( result => {
-			if ( ! result ) {
-				return next( AuthError() );
-			} else {
-				return next();
-			}
-		});
+
+		if ( checkPerms( perm, ctx, char.orgunit ) ) {
+			return next();
+		}
+		return next( AuthError() );
 	})
 	.catch( err => next( err ) );
 }
@@ -369,14 +351,10 @@ function restrictDelete( ctx, instance, next ) {
 		}
 		_.set( ctx, 'args.data.venue', char.venue );
 
-		return checkPerms( perm, ctx, char.orgunit )
-		.then( result => {
-			if ( ! result ) {
-				return next( AuthError() );
-			} else {
-				return next();
-			}
-		});
+		if ( checkPerms( perm, ctx, char.orgunit ) ) {
+			return next();
+		}
+		return next( AuthError() );
 	})
 	.catch( err => next( err ) );
 }
@@ -407,19 +385,14 @@ function restrictMove( ctx, instance, next ) {
 
 		_.set( ctx, 'args.data.venue', char.venue );
 		let perm = 'PC' === char.type ? 'character_edit' : 'npc_edit';
-		const Promise = require( 'bluebird' );
-		return Promise.join(
-			checkPerms( perm, ctx, char.orgunit ),
-			checkPerms( perm, ctx, ctx.args.orgunit ),
-			( char, orgunit ) => char && orgunit
-		)
-		.then( allowed => {
-			if ( ! allowed ) {
-				return next( AuthError() );
-			} else {
-				return next();
-			}
-		})
+
+		if (
+			checkPerms( perm, ctx, char.orgunit ) &&
+			checkPerms( perm, ctx, ctx.args.orgunit )
+		) {
+			return next();
+		}
+		return next( AuthError() );
 	})
 	.catch( err => next( err ) );
 }
@@ -454,14 +427,10 @@ function restrictRelated( ctx, instance, next ) {
 		}
 		_.set( ctx, 'args.data.venue', char.venue );
 
-		return checkPerms( perm, ctx, char.orgunit )
-		.then( result => {
-			if ( ! result ) {
-				return next( AuthError() );
-			} else {
-				return next();
-			}
-		});
+		if ( checkPerms( perm, ctx, char.orgunit ) ) {
+			return next();
+		}
+		return next( AuthError() );
 	})
 	.catch( err => next( err ) );
 }
@@ -495,35 +464,25 @@ function restrictLinkTag( ctx, instance, next ) {
  * @param {Array|String} perms Permission(s) to check.
  * @param {Object} ctx         Loopback context object.
  * @param {Number} orgunit     ID of valid org unit.
- * @return {Promise}
+ * @return {Boolean}
  */
 function checkPerms( perms, ctx, orgunit ) {
 	let Character = ctx.method.ctor;
 
 	perms   = Character.normalizePerms( perms, ctx );
-	orgunit = orgunit || 1;
 
-	let units = [];
-	let offices = ctx.args.options.offices;
-	for ( let office in ctx.args.options.offices ) {
-		if ( _.intersection( offices[ office ], perms ).length ) {
-			units.push( parseInt( office ) );
-		}
-	}
+	let offices = Character.findValidOffices( perms, ctx.args.options.offices );
+	let units = Character.getUnitsFromOffices( offices );
 
 	if ( ! units.length ) {
-		return Promise.resolve( false );
+		return false;
 	}
 
 	if ( -1 !== units.indexOf( 1 ) ) {
-		return Promise.resolve( true );
+		return true
 	}
 
-	return Character.getTree( units )
-	.then( ids => {
-		if ( -1 !== ids.indexOf( orgunit ) ) {
-			return Promise.resolve( true );
-		}
-		return Promise.resolve( false );
-	});
+	if ( -1 !== units.indexOf( orgunit ) ) {
+		return true
+	}
 }

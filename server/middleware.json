@@ -32,7 +32,15 @@
 		}
 	},
 	"session": {},
-	"auth": {},
+	"auth": {
+		"./middleware/auth": {
+			"params": {
+				"authorizer": true,
+				"token": false,
+				"hubUrl": ""
+			}
+		}
+	},
 	"parse": {},
 	"routes": {
 		"loopback#rest": {

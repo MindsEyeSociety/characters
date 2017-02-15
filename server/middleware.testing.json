@@ -1,4 +1,13 @@
 {
+	"auth": {
+		"./middleware/auth": {
+			"params": {
+				"authorizer": true,
+				"token": true,
+				"hubUrl": "testing"
+			}
+		}
+	},
 	"final:after": {
 		"strong-error-handler": {
 			"params": {

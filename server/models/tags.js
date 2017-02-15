@@ -22,9 +22,6 @@ module.exports = function( Tag ) {
 
 	Tag.afterRemote( 'findById', restrictAfter );
 
-	Tag.beforeRemote( 'create', restrictUpdateBefore );
-	Tag.beforeRemote( 'upsert', restrictUpdateBefore );
-
 	Tag.beforeRemote( 'deleteById', restrictDelete );
 
 	Tag.beforeRemote( 'prototype.__get__characters', restrictCharacters );
@@ -110,23 +107,6 @@ function restrictAfter( ctx, instance, next ) {
 
 
 /**
- * Restricts before an update query takes place.
- * @param {Object}   ctx      Loopback context object.
- * @param {Object}   instance The instance object.
- * @param {Function} next     Callback.
- * @return {void}
- */
-function restrictUpdateBefore( ctx, instance, next ) {
-	let perms = _.get( ctx.req.accessToken, 'offices.1' );
-
-	if ( ! perms || ! 'character_tag_edit' in perms ) {
-		return next( AuthError() );
-	}
-	next();
-}
-
-
-/**
  * Restricts before a delete query takes place.
  * @param {Object}   ctx      Loopback context object.
  * @param {Object}   instance The instance object.
@@ -134,14 +114,6 @@ function restrictUpdateBefore( ctx, instance, next ) {
  * @return {void}
  */
 function restrictDelete( ctx, instance, next ) {
-	let perms = _.chain( ctx.args.options.offices ).values().flatten().uniq().value();
-
-	for ( let perm of perms ) {
-		if ( 'character_tag_delete' === perm || 'admin' === perm ) {
-			return next();
-		}
-	}
-
 	if ( ! ctx.args.id ) {
 		return next( AuthError() );
 	}
@@ -149,10 +121,9 @@ function restrictDelete( ctx, instance, next ) {
 	let Tag = ctx.method.ctor;
 	Tag.findById( ctx.args.id )
 	.then( tag => {
-		for ( let perm of perms ) {
-			if ( `character_tag_delete_${tag.venue}` === perm ) {
-				return next();
-			}
+		_.set( ctx, 'args.data.venue', tag.venue );
+		if ( Tag.checkPerms( 'character_tag_delete', ctx.req.accessToken, ctx ) ) {
+			return next();
 		}
 		return next( AuthError() );
 	});
@@ -192,7 +163,6 @@ function restrictCharacters( ctx, instance, next ) {
  * @return {void}
  */
 function restrictCharactersAfter( ctx, instance, next ) {
-	let Tag   = ctx.method.ctor;
 	let units = ctx.req.accessToken.units;
 	let chars = ctx.result;
 
@@ -206,9 +176,6 @@ function restrictCharactersAfter( ctx, instance, next ) {
 		return next();
 	}
 
-	Tag.getTree( units )
-	.then( units => {
-		ctx.result = chars.filter( char => -1 !== units.indexOf( char.orgunit ) );
-		next();
-	});
+	ctx.result = chars.filter( char => -1 !== units.indexOf( char.orgunit ) );
+	next();
 }

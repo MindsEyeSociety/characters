@@ -1,4 +1,13 @@
 {
+	"auth": {
+		"./middleware/auth": {
+			"params": {
+				"authorizer": true,
+				"token": true,
+				"hubUrl": "http://localhost:3000/v1"
+			}
+		}
+	},
 	"final:after": {
 		"./middleware/dev-error": {
 			"enabled": true
