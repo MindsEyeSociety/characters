@@ -1,7 +1,4 @@
 {
-	"initial:before": {
-		"loopback#favicon": {}
-	},
 	"initial": {
 		"compression": {},
 		"cors": {
@@ -11,7 +8,6 @@
 				"maxAge": 86400
 			}
 		},
-		"cookie-parser": {},
 		"helmet#xssFilter": {},
 		"helmet#frameguard": {
 			"params": [
