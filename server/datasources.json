@@ -4,7 +4,7 @@
 		"connector": "memory"
 	},
 	"mysql": {
-		"url": "mysql://root:root@db:3306/characters",
+		"url": "${MYSQL_URL}",
 		"name": "mysql",
 		"connector": "mysql"
 	}
