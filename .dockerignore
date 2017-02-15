@@ -1,6 +1,2 @@
 node_modules
 .*
-docs
-test.sh
-switch.sh
-server/datasources.json

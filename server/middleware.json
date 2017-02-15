@@ -1,4 +1,7 @@
 {
+	"initial:before": {
+		"loopback#favicon": {}
+	},
 	"initial": {
 		"compression": {},
 		"cors": {
@@ -32,8 +35,8 @@
 		"./middleware/auth": {
 			"params": {
 				"authorizer": true,
-				"token": false,
-				"hubUrl": ""
+				"token": true,
+				"hubUrl": "http://users:3000/v1"
 			}
 		}
 	},
@@ -50,9 +53,7 @@
 		"loopback#urlNotFound": {}
 	},
 	"final:after": {
-		"./middleware/dev-error": {
-			"enabled": false
-		},
+		"./middleware/dev-error": {},
 		"strong-error-handler": {}
 	}
 }

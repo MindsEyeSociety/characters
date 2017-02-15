@@ -90,7 +90,7 @@ function reqHub( url, token ) {
 	}
 	return request({
 		url: host + url,
-		qs: { token },
+		qs: { token, offices: true, children: true },
 		json: true
 	});
 }

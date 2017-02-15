@@ -3,19 +3,14 @@
 		"./middleware/auth": {
 			"params": {
 				"authorizer": true,
-				"token": true,
-				"hubUrl": "testing"
+				"token": false,
+				"hubUrl": ""
 			}
 		}
 	},
 	"final:after": {
 		"./middleware/dev-error": {
 			"enabled": false
-		},
-		"strong-error-handler": {
-			"params": {
-				"log": false
-			}
 		}
 	}
 }

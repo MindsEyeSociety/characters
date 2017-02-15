@@ -1,0 +1,11 @@
+{
+	"memory": {
+		"name": "memory",
+		"connector": "memory"
+	},
+	"mysql": {
+		"url": "mysql://root:root@db:3306/characters",
+		"name": "mysql",
+		"connector": "mysql"
+	}
+}
